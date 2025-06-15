@@ -1,7 +1,6 @@
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import { ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
-import './styles/esl-player.css';
 import { useState } from 'react';
 
 import { AuthProvider } from './contexts/AuthContext';
@@ -14,9 +13,6 @@ import { RegisterPage } from './pages/RegisterPage';
 import { DashboardPage } from './pages/DashboardPage';
 import { UploadPage } from './pages/UploadPage';
 import { PlayerPage } from './pages/PlayerPage';
-import { TestPlayerPage } from './pages/TestPlayerPage';
-import { BasicVideoTest } from './components/BasicVideoTest';
-import TestModernComponents from './components/TestModernComponents';
 
 function App() {
   const [playerPageInfo, setPlayerPageInfo] = useState(null);
@@ -37,9 +33,6 @@ function App() {
               <Route path="/dashboard" element={<DashboardPage />} />
               <Route path="/upload" element={<UploadPage />} />
               <Route path="/player/:fileId" element={<PlayerPage onPlayerPageInfoChange={setPlayerPageInfo} />} />
-              <Route path="/test-player" element={<TestPlayerPage />} />
-              <Route path="/basic-video-test" element={<BasicVideoTest />} />
-              <Route path="/test-modern" element={<TestModernComponents />} />
 
               {/* Default redirect */}
               <Route path="/" element={<Navigate to="/dashboard" replace />} />

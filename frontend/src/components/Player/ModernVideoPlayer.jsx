@@ -2,6 +2,7 @@ import React, { useRef, useEffect, useState, useCallback } from 'react';
 import videojs from 'video.js';
 import 'video.js/dist/video-js.css';
 import './ModernVideoPlayer.css';
+import { mediaAPI } from '../../services/api';
 
 const ESL_MODES = {
   NORMAL: 'normal',
@@ -34,12 +35,21 @@ const ModernVideoPlayer = ({
 
   // Toggle play/pause
   const togglePlay = useCallback(() => {
-    if (!playerRef.current) return;
+    console.log('togglePlay called - isPlaying:', isPlaying, 'hasPlayer:', !!playerRef.current);
+
+    if (!playerRef.current) {
+      console.log('No player available for togglePlay');
+      return;
+    }
 
     if (isPlaying) {
+      console.log('Pausing video');
       playerRef.current.pause();
     } else {
-      playerRef.current.play();
+      console.log('Playing video');
+      playerRef.current.play().catch(error => {
+        console.error('Error playing video:', error);
+      });
     }
   }, [isPlaying]);
 
@@ -138,19 +148,34 @@ const ModernVideoPlayer = ({
 
   // Initialize Video.js player
   useEffect(() => {
-    if (!videoRef.current || playerRef.current) return;
+    if (!videoRef.current) return;
 
     const videoElement = videoRef.current;
 
-    // Check if element is actually in the DOM
-    if (!document.contains(videoElement)) {
-      console.warn('Video element not in DOM yet, skipping initialization');
+    // Check if player is already initialized
+    if (playerRef.current) {
+      console.log('Player already initialized, skipping...');
       return;
     }
 
-    // Add a small delay to ensure DOM is fully ready
+    // Initialize player with a small delay to ensure DOM is ready
     const initializePlayer = () => {
       try {
+        console.log('Initializing Video.js player...');
+
+        // Dispose any existing player on the element
+        if (videoElement.player) {
+          console.log('Disposing existing player...');
+          try {
+            videoElement.player.dispose();
+          } catch (e) {
+            console.warn('Error disposing existing player:', e);
+          }
+        }
+
+        // Clear any existing Video.js classes
+        videoElement.className = 'video-js vjs-default-skin';
+
         // Ensure the video element has required attributes
         videoElement.setAttribute('controls', 'false');
         videoElement.setAttribute('preload', 'metadata');
@@ -170,11 +195,13 @@ const ModernVideoPlayer = ({
         });
 
         playerRef.current = player;
+        console.log('Video.js player initialized successfully');
 
         // Set up event listeners
         player.on('timeupdate', handleTimeUpdate);
         player.on('loadedmetadata', () => {
           setDuration(player.duration() || 0);
+          console.log('Video metadata loaded, duration:', player.duration());
         });
         player.on('play', () => setIsPlaying(true));
         player.on('pause', () => setIsPlaying(false));
@@ -192,13 +219,13 @@ const ModernVideoPlayer = ({
       }
     };
 
-    // Use requestAnimationFrame to ensure DOM is ready
-    const rafId = requestAnimationFrame(() => {
+    // Use a small timeout to ensure DOM is ready
+    const timeoutId = setTimeout(() => {
       initializePlayer();
-    });
+    }, 100);
 
     return () => {
-      cancelAnimationFrame(rafId);
+      clearTimeout(timeoutId);
       if (playerRef.current) {
         try {
           playerRef.current.dispose();
@@ -208,24 +235,40 @@ const ModernVideoPlayer = ({
         playerRef.current = null;
       }
     };
-  }, [handleTimeUpdate, onPlayerReady]);
+  }, []);
 
   // Set video source when mediaFile changes
   useEffect(() => {
-    if (playerRef.current && mediaFile?.file_url) {
-      console.log('Setting video source:', mediaFile.file_url);
+    console.log('MediaFile changed:', mediaFile);
+    console.log('MediaFile properties:', mediaFile ? Object.keys(mediaFile) : 'null');
+
+    if (playerRef.current && mediaFile && mediaFile.id) {
+      // Use the correct API endpoint for serving media files
+      const videoUrl = mediaAPI.getMediaFileUrl(mediaFile.id);
+
+      console.log('Setting video source:', videoUrl);
+      console.log('Media file type:', mediaFile.file_type);
+      console.log('Media file ID:', mediaFile.id);
 
       // Set the source
       playerRef.current.src({
-        src: mediaFile.file_url,
+        src: videoUrl,
         type: mediaFile.file_type === 'video' ? 'video/mp4' : 'audio/mp3'
       });
 
       // Reset player state
       setCurrentTime(0);
       setIsPlaying(false);
+
+      console.log('Video source set successfully');
+    } else {
+      console.log('Cannot set video source - player or mediaFile not ready:', {
+        hasPlayer: !!playerRef.current,
+        hasMediaFile: !!mediaFile,
+        hasMediaFileId: !!mediaFile?.id
+      });
     }
-  }, [mediaFile]);
+  }, [mediaFile, playerRef.current]);
 
   const seekToSegment = (segmentIndex) => {
     if (!playerRef.current || !segments[segmentIndex]) return;
@@ -300,9 +343,12 @@ const ModernVideoPlayer = ({
         <video
           ref={videoRef}
           className="video-js vjs-default-skin"
-          data-setup="{}"
+          data-setup='{"controls": false, "preload": "metadata"}'
           controls={false}
           preload="metadata"
+          playsInline
+          webkit-playsinline="true"
+          x-webkit-airplay="allow"
         />
 
         {/* Subtitle Overlay */}

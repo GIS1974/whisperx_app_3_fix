@@ -30,6 +30,30 @@
   object-fit: contain;
 }
 
+/* Completely hide all Video.js controls to prevent duplicates */
+.modern-video-player .video-js .vjs-control-bar,
+.modern-video-player .video-js .vjs-big-play-button,
+.modern-video-player .video-js .vjs-loading-spinner,
+.modern-video-player .video-js .vjs-poster,
+.modern-video-player .video-js .vjs-menu-button,
+.modern-video-player .video-js .vjs-progress-control,
+.modern-video-player .video-js .vjs-play-control,
+.modern-video-player .video-js .vjs-volume-panel,
+.modern-video-player .video-js .vjs-current-time,
+.modern-video-player .video-js .vjs-time-divider,
+.modern-video-player .video-js .vjs-duration,
+.modern-video-player .video-js .vjs-fullscreen-control,
+.modern-video-player .video-js .vjs-remaining-time,
+.modern-video-player .video-js .vjs-playback-rate {
+  display: none !important;
+  visibility: hidden !important;
+  opacity: 0 !important;
+  pointer-events: none !important;
+  height: 0 !important;
+  width: 0 !important;
+  overflow: hidden !important;
+}
+
 /* Subtitle Overlay */
 .subtitle-overlay {
   position: absolute;
@@ -146,6 +170,8 @@
   align-items: center;
   justify-content: space-between;
   gap: 16px;
+  flex-wrap: wrap;
+  min-height: 60px;
 }
 
 .playback-controls {
@@ -207,12 +233,15 @@
 .esl-controls {
   display: flex;
   gap: 8px;
+  flex-shrink: 0;
+  align-items: center;
+  justify-content: center;
 }
 
 .esl-btn {
-  background: rgba(255, 255, 255, 0.1);
-  border: none;
-  color: white;
+  background: rgba(255, 255, 255, 0.2);
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  color: white !important;
   padding: 8px 16px;
   border-radius: 20px;
   font-size: 12px;
@@ -220,9 +249,13 @@
   cursor: pointer;
   transition: all 0.2s ease;
   backdrop-filter: blur(4px);
-  border: 1px solid rgba(255, 255, 255, 0.1);
   text-transform: uppercase;
   letter-spacing: 0.5px;
+  min-width: 80px;
+  display: inline-block;
+  text-align: center;
+  line-height: 1.2;
+  white-space: nowrap;
 }
 
 .esl-btn:hover {
@@ -309,24 +342,35 @@
     flex-direction: column;
     gap: 12px;
   }
-  
+
+  .esl-controls {
+    justify-content: center;
+    flex-wrap: wrap;
+  }
+
   .additional-controls {
     justify-content: center;
+    flex-wrap: wrap;
   }
-  
+
   .subtitle-text {
     font-size: 16px;
     padding: 8px 16px;
   }
-  
+
   .control-btn {
     width: 40px;
     height: 40px;
   }
-  
+
   .control-btn.play-btn {
     width: 48px;
     height: 48px;
+  }
+
+  .esl-btn {
+    font-size: 11px;
+    padding: 6px 12px;
   }
 }
 
