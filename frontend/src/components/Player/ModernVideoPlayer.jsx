@@ -142,46 +142,69 @@ const ModernVideoPlayer = ({
 
     const videoElement = videoRef.current;
 
-    // Ensure the video element has required attributes
-    videoElement.setAttribute('controls', 'false');
-    videoElement.setAttribute('preload', 'metadata');
-
-    const player = videojs(videoElement, {
-      controls: false, // We'll use custom controls
-      responsive: true,
-      fluid: true,
-      playbackRates: [0.5, 0.75, 1, 1.25, 1.5, 2],
-      preload: 'metadata',
-      techOrder: ['html5'],
-      html5: {
-        vhs: {
-          overrideNative: true
-        }
-      }
-    });
-
-    playerRef.current = player;
-
-    // Set up event listeners
-    player.on('timeupdate', handleTimeUpdate);
-    player.on('loadedmetadata', () => {
-      setDuration(player.duration() || 0);
-    });
-    player.on('play', () => setIsPlaying(true));
-    player.on('pause', () => setIsPlaying(false));
-    player.on('volumechange', () => setVolume(player.volume() || 1));
-    player.on('error', (e) => {
-      console.error('Video player error:', e);
-    });
-
-    // Notify parent component that player is ready
-    if (onPlayerReady) {
-      onPlayerReady(player);
+    // Check if element is actually in the DOM
+    if (!document.contains(videoElement)) {
+      console.warn('Video element not in DOM yet, skipping initialization');
+      return;
     }
 
+    // Add a small delay to ensure DOM is fully ready
+    const initializePlayer = () => {
+      try {
+        // Ensure the video element has required attributes
+        videoElement.setAttribute('controls', 'false');
+        videoElement.setAttribute('preload', 'metadata');
+
+        const player = videojs(videoElement, {
+          controls: false, // We'll use custom controls
+          responsive: true,
+          fluid: true,
+          playbackRates: [0.5, 0.75, 1, 1.25, 1.5, 2],
+          preload: 'metadata',
+          techOrder: ['html5'],
+          html5: {
+            vhs: {
+              overrideNative: true
+            }
+          }
+        });
+
+        playerRef.current = player;
+
+        // Set up event listeners
+        player.on('timeupdate', handleTimeUpdate);
+        player.on('loadedmetadata', () => {
+          setDuration(player.duration() || 0);
+        });
+        player.on('play', () => setIsPlaying(true));
+        player.on('pause', () => setIsPlaying(false));
+        player.on('volumechange', () => setVolume(player.volume() || 1));
+        player.on('error', (e) => {
+          console.error('Video player error:', e);
+        });
+
+        // Notify parent component that player is ready
+        if (onPlayerReady) {
+          onPlayerReady(player);
+        }
+      } catch (error) {
+        console.error('Failed to initialize Video.js player:', error);
+      }
+    };
+
+    // Use requestAnimationFrame to ensure DOM is ready
+    const rafId = requestAnimationFrame(() => {
+      initializePlayer();
+    });
+
     return () => {
+      cancelAnimationFrame(rafId);
       if (playerRef.current) {
-        playerRef.current.dispose();
+        try {
+          playerRef.current.dispose();
+        } catch (error) {
+          console.warn('Error disposing player:', error);
+        }
         playerRef.current = null;
       }
     };

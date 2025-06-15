@@ -1,6 +1,5 @@
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
 @import 'video.js/dist/video-js.css';
-@import './styles/esl-player.css';
 
 @tailwind base;
 @tailwind components;
@@ -67,54 +66,9 @@
   }
 }
 
-/* Video player container */
-.video-player-container {
-  position: relative;
-  width: 100%;
-  height: 0;
-  padding-bottom: 56.25%; /* 16:9 aspect ratio */
-  background: #000;
-  border-radius: 0.5rem;
-  overflow: hidden;
-}
-
-.video-player-container .video-js {
-  position: absolute;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  border-radius: 0.5rem;
-}
-
 /* Video.js theme customization */
 .video-js {
   font-family: 'Inter', system-ui, sans-serif;
-}
-
-/* Disable ALL native browser video controls */
-.esl-video-player video,
-.esl-video-player .video-js video {
-  -webkit-media-controls: none !important;
-  -moz-media-controls: none !important;
-  media-controls: none !important;
-}
-
-.esl-video-player video::-webkit-media-controls,
-.esl-video-player video::-webkit-media-controls-enclosure,
-.esl-video-player video::-webkit-media-controls-panel,
-.esl-video-player video::-webkit-media-controls-play-button,
-.esl-video-player video::-webkit-media-controls-start-playback-button,
-.esl-video-player video::-webkit-media-controls-timeline,
-.esl-video-player video::-webkit-media-controls-current-time-display,
-.esl-video-player video::-webkit-media-controls-time-remaining-display,
-.esl-video-player video::-webkit-media-controls-mute-button,
-.esl-video-player video::-webkit-media-controls-volume-slider,
-.esl-video-player video::-webkit-media-controls-fullscreen-button {
-  display: none !important;
-  -webkit-appearance: none !important;
-  opacity: 0 !important;
-  visibility: hidden !important;
 }
 
 .esl-video-player video::-moz-media-controls {
@@ -245,28 +199,7 @@
   order: 10;
 }
 
-/* Hide ALL Video.js controls completely in ESL player */
-.esl-video-player .video-js .vjs-control-bar,
-.esl-video-player .video-js .vjs-big-play-button,
-.esl-video-player .video-js .vjs-loading-spinner,
-.esl-video-player .video-js .vjs-progress-control,
-.esl-video-player .video-js .vjs-play-control,
-.esl-video-player .video-js .vjs-volume-panel,
-.esl-video-player .video-js .vjs-current-time,
-.esl-video-player .video-js .vjs-time-divider,
-.esl-video-player .video-js .vjs-duration,
-.esl-video-player .video-js .vjs-fullscreen-control,
-.esl-video-player .video-js .vjs-remaining-time,
-.esl-video-player .video-js .vjs-playback-rate,
-.esl-video-player .video-js .vjs-menu-button {
-  display: none !important;
-  opacity: 0 !important;
-  visibility: hidden !important;
-  pointer-events: none !important;
-  height: 0 !important;
-  width: 0 !important;
-  overflow: hidden !important;
-}
+
 
 /* Custom subtitle styling */
 .vjs-text-track-display {
