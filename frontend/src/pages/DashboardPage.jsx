@@ -309,21 +309,21 @@ export const DashboardPage = () => {
                       {canOpen(file) ? (
                         <div className="flex space-x-2">
                           <button
-                            onClick={() => handleDownload(file.id, 'VTT')}
+                            onClick={() => handleDownload(file.id, 'vtt')}
                             className="text-xs bg-blue-100 text-blue-700 px-2 py-1 rounded hover:bg-blue-200 transition-colors"
                             title="Download VTT"
                           >
                             VTT
                           </button>
                           <button
-                            onClick={() => handleDownload(file.id, 'SRT')}
+                            onClick={() => handleDownload(file.id, 'srt')}
                             className="text-xs bg-green-100 text-green-700 px-2 py-1 rounded hover:bg-green-200 transition-colors"
                             title="Download SRT"
                           >
                             SRT
                           </button>
                           <button
-                            onClick={() => handleDownload(file.id, 'TXT')}
+                            onClick={() => handleDownload(file.id, 'txt')}
                             className="text-xs bg-purple-100 text-purple-700 px-2 py-1 rounded hover:bg-purple-200 transition-colors"
                             title="Download TXT"
                           >

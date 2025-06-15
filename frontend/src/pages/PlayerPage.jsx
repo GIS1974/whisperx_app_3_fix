@@ -238,6 +238,9 @@ export const PlayerPage = ({ onPlayerPageInfoChange }) => {
                 onSegmentChange={videoPlayer.seekToSegment}
                 currentSegmentIndex={videoPlayer.currentSegmentIndex}
                 onModeChange={eslModes.changeESLMode}
+                onPlayerReady={(player) => {
+                  videoPlayer.initializePlayer(player);
+                }}
                 className="w-full h-full"
               />
             </div>

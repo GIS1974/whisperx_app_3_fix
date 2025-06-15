@@ -16,6 +16,7 @@ import { UploadPage } from './pages/UploadPage';
 import { PlayerPage } from './pages/PlayerPage';
 import { TestPlayerPage } from './pages/TestPlayerPage';
 import { BasicVideoTest } from './components/BasicVideoTest';
+import TestModernComponents from './components/TestModernComponents';
 
 function App() {
   const [playerPageInfo, setPlayerPageInfo] = useState(null);
@@ -38,6 +39,7 @@ function App() {
               <Route path="/player/:fileId" element={<PlayerPage onPlayerPageInfoChange={setPlayerPageInfo} />} />
               <Route path="/test-player" element={<TestPlayerPage />} />
               <Route path="/basic-video-test" element={<BasicVideoTest />} />
+              <Route path="/test-modern" element={<TestModernComponents />} />
 
               {/* Default redirect */}
               <Route path="/" element={<Navigate to="/dashboard" replace />} />

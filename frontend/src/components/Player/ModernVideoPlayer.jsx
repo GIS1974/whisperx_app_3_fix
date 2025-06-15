@@ -16,6 +16,7 @@ const ModernVideoPlayer = ({
   onSegmentChange,
   currentSegmentIndex,
   onModeChange,
+  onPlayerReady,
   className = ''
 }) => {
   const videoRef = useRef(null);
@@ -30,6 +31,41 @@ const ModernVideoPlayer = ({
   const [volume, setVolume] = useState(1);
   const [segments, setSegments] = useState([]);
   const [repeatSegment, setRepeatSegment] = useState(null);
+
+  // Keyboard event handling
+  useEffect(() => {
+    const handleKeyDown = (event) => {
+      if (event.code === 'Space') {
+        event.preventDefault();
+
+        // In repeat mode, handle spacebar specially
+        if (eslMode === ESL_MODES.REPEAT && repeatSegment !== null) {
+          const segment = segments[repeatSegment];
+          if (segment && playerRef.current) {
+            const player = playerRef.current;
+            const currentTime = player.currentTime();
+
+            if (player.paused()) {
+              // If paused, play from current position or start of segment
+              if (currentTime < segment.start || currentTime >= segment.end) {
+                player.currentTime(segment.start);
+              }
+              player.play();
+            } else {
+              // If playing, pause
+              player.pause();
+            }
+          }
+        } else {
+          // Normal spacebar behavior
+          togglePlay();
+        }
+      }
+    };
+
+    document.addEventListener('keydown', handleKeyDown);
+    return () => document.removeEventListener('keydown', handleKeyDown);
+  }, [eslMode, repeatSegment, segments, togglePlay]);
 
   // Parse segments from transcription
   useEffect(() => {
@@ -50,12 +86,23 @@ const ModernVideoPlayer = ({
     if (!videoRef.current || playerRef.current) return;
 
     const videoElement = videoRef.current;
+
+    // Ensure the video element has required attributes
+    videoElement.setAttribute('controls', 'false');
+    videoElement.setAttribute('preload', 'metadata');
+
     const player = videojs(videoElement, {
       controls: false, // We'll use custom controls
       responsive: true,
       fluid: true,
       playbackRates: [0.5, 0.75, 1, 1.25, 1.5, 2],
-      preload: 'metadata'
+      preload: 'metadata',
+      techOrder: ['html5'],
+      html5: {
+        vhs: {
+          overrideNative: true
+        }
+      }
     });
 
     playerRef.current = player;
@@ -63,11 +110,19 @@ const ModernVideoPlayer = ({
     // Set up event listeners
     player.on('timeupdate', handleTimeUpdate);
     player.on('loadedmetadata', () => {
-      setDuration(player.duration());
+      setDuration(player.duration() || 0);
     });
     player.on('play', () => setIsPlaying(true));
     player.on('pause', () => setIsPlaying(false));
-    player.on('volumechange', () => setVolume(player.volume()));
+    player.on('volumechange', () => setVolume(player.volume() || 1));
+    player.on('error', (e) => {
+      console.error('Video player error:', e);
+    });
+
+    // Notify parent component that player is ready
+    if (onPlayerReady) {
+      onPlayerReady(player);
+    }
 
     return () => {
       if (playerRef.current) {
@@ -75,15 +130,22 @@ const ModernVideoPlayer = ({
         playerRef.current = null;
       }
     };
-  }, []);
+  }, [handleTimeUpdate, onPlayerReady]);
 
   // Set video source when mediaFile changes
   useEffect(() => {
     if (playerRef.current && mediaFile?.file_url) {
+      console.log('Setting video source:', mediaFile.file_url);
+
+      // Set the source
       playerRef.current.src({
         src: mediaFile.file_url,
-        type: 'video/mp4'
+        type: mediaFile.file_type === 'video' ? 'video/mp4' : 'audio/mp3'
       });
+
+      // Reset player state
+      setCurrentTime(0);
+      setIsPlaying(false);
     }
   }, [mediaFile]);
 
@@ -213,6 +275,8 @@ const ModernVideoPlayer = ({
           ref={videoRef}
           className="video-js vjs-default-skin"
           data-setup="{}"
+          controls={false}
+          preload="metadata"
         />
 
         {/* Subtitle Overlay */}
