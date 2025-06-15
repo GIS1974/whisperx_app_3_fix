@@ -230,6 +230,7 @@ export const PlayerPage = ({ onPlayerPageInfoChange }) => {
             {/* Video Player Column - Takes 70% width */}
             <div className="w-[70%] flex flex-col overflow-hidden">
               <ModernVideoPlayer
+                key={mediaFile?.id || 'video-player'}
                 mediaFile={mediaFile}
                 transcription={transcription}
                 onTimeUpdate={(time) => {

@@ -44,7 +44,14 @@
 .modern-video-player .video-js .vjs-duration,
 .modern-video-player .video-js .vjs-fullscreen-control,
 .modern-video-player .video-js .vjs-remaining-time,
-.modern-video-player .video-js .vjs-playback-rate {
+.modern-video-player .video-js .vjs-playback-rate,
+.modern-video-player .video-js .vjs-chapters-button,
+.modern-video-player .video-js .vjs-descriptions-button,
+.modern-video-player .video-js .vjs-captions-button,
+.modern-video-player .video-js .vjs-subtitles-button,
+.modern-video-player .video-js .vjs-audio-button,
+.modern-video-player .video-js .vjs-picture-in-picture-control,
+.modern-video-player .video-js .vjs-text-track-display {
   display: none !important;
   visibility: hidden !important;
   opacity: 0 !important;
@@ -52,6 +59,16 @@
   height: 0 !important;
   width: 0 !important;
   overflow: hidden !important;
+  position: absolute !important;
+  left: -9999px !important;
+  top: -9999px !important;
+}
+
+/* Force hide Video.js UI globally within our player */
+.modern-video-player .video-js:hover .vjs-control-bar {
+  display: none !important;
+  visibility: hidden !important;
+  opacity: 0 !important;
 }
 
 /* Subtitle Overlay */
@@ -116,6 +133,9 @@
   padding: 16px 20px;
   color: white;
   backdrop-filter: blur(8px);
+  position: relative;
+  z-index: 10;
+  flex-shrink: 0;
 }
 
 .progress-container {
@@ -172,6 +192,8 @@
   gap: 16px;
   flex-wrap: wrap;
   min-height: 60px;
+  position: relative;
+  z-index: 5;
 }
 
 .playback-controls {
@@ -232,41 +254,81 @@
 /* ESL Controls */
 .esl-controls {
   display: flex;
-  gap: 8px;
+  gap: 12px;
   flex-shrink: 0;
   align-items: center;
   justify-content: center;
+  position: relative;
+  z-index: 50;
+  margin: 0 16px;
 }
 
 .esl-btn {
-  background: rgba(255, 255, 255, 0.2);
-  border: 1px solid rgba(255, 255, 255, 0.3);
-  color: white !important;
+  /* Reset all inherited styles */
+  all: unset;
+
+  /* Core button styling */
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+
+  /* Size and spacing */
+  min-width: 85px;
+  height: 36px;
   padding: 8px 16px;
-  border-radius: 20px;
+
+  /* Typography */
+  font-family: 'Inter', system-ui, sans-serif;
   font-size: 12px;
   font-weight: 600;
-  cursor: pointer;
-  transition: all 0.2s ease;
-  backdrop-filter: blur(4px);
   text-transform: uppercase;
   letter-spacing: 0.5px;
-  min-width: 80px;
-  display: inline-block;
   text-align: center;
-  line-height: 1.2;
+  line-height: 1;
   white-space: nowrap;
+
+  /* Colors - High contrast for visibility */
+  background-color: rgba(55, 65, 81, 0.9);
+  color: #ffffff;
+  border: 2px solid rgba(156, 163, 175, 0.5);
+
+  /* Shape and effects */
+  border-radius: 20px;
+  backdrop-filter: blur(8px);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+
+  /* Interaction */
+  cursor: pointer;
+  user-select: none;
+  transition: all 0.2s ease;
+
+  /* Positioning */
+  position: relative;
+  z-index: 100;
 }
 
 .esl-btn:hover {
-  background: rgba(255, 255, 255, 0.2);
+  background-color: rgba(75, 85, 99, 0.9);
+  border-color: rgba(156, 163, 175, 0.8);
   transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+}
+
+.esl-btn:active {
+  transform: translateY(0);
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
 }
 
 .esl-btn.active {
-  background: rgba(59, 130, 246, 0.8);
-  border-color: rgba(59, 130, 246, 0.5);
-  box-shadow: 0 2px 8px rgba(59, 130, 246, 0.3);
+  background-color: rgba(59, 130, 246, 0.9);
+  border-color: rgba(59, 130, 246, 0.8);
+  color: #ffffff;
+  box-shadow: 0 4px 16px rgba(59, 130, 246, 0.4);
+}
+
+.esl-btn.active:hover {
+  background-color: rgba(37, 99, 235, 0.9);
+  border-color: rgba(37, 99, 235, 0.8);
 }
 
 /* Additional Controls */

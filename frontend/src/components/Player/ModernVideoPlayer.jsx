@@ -146,11 +146,12 @@ const ModernVideoPlayer = ({
     handleESLModeLogic(time, currentSegment);
   }, [segments, currentSegmentIndex, eslMode, repeatSegment, shadowingDelay, onSegmentChange, onTimeUpdate]);
 
-  // Initialize Video.js player
+  // Initialize Video.js player with proper StrictMode handling
   useEffect(() => {
     if (!videoRef.current) return;
 
     const videoElement = videoRef.current;
+    let isInitialized = false;
 
     // Check if player is already initialized
     if (playerRef.current) {
@@ -158,39 +159,96 @@ const ModernVideoPlayer = ({
       return;
     }
 
+    // Check if the video element already has a player attached (StrictMode protection)
+    if (videoElement.player && typeof videoElement.player.dispose === 'function') {
+      console.log('Video element already has a player, skipping initialization...');
+      playerRef.current = videoElement.player;
+
+      // Notify parent component that player is ready
+      if (onPlayerReady) {
+        onPlayerReady(videoElement.player);
+      }
+      return;
+    }
+
     // Initialize player with a small delay to ensure DOM is ready
     const initializePlayer = () => {
+      // Double-check to prevent race conditions in StrictMode
+      if (isInitialized || playerRef.current) {
+        console.log('Player initialization already in progress or completed, skipping...');
+        return;
+      }
+
       try {
+        isInitialized = true;
         console.log('Initializing Video.js player...');
 
-        // Dispose any existing player on the element
-        if (videoElement.player) {
+        // Dispose any existing player on the element first
+        if (videoElement.player && typeof videoElement.player.dispose === 'function') {
           console.log('Disposing existing player...');
           try {
             videoElement.player.dispose();
           } catch (e) {
             console.warn('Error disposing existing player:', e);
           }
+          // Clear the player reference from the element
+          delete videoElement.player;
         }
 
-        // Clear any existing Video.js classes
+        // Also check for any existing videojs instances and dispose them
+        if (window.videojs && window.videojs.getPlayer) {
+          try {
+            const existingPlayer = window.videojs.getPlayer(videoElement);
+            if (existingPlayer && typeof existingPlayer.dispose === 'function') {
+              console.log('Disposing existing videojs player instance...');
+              existingPlayer.dispose();
+            }
+          } catch (e) {
+            console.warn('Error disposing existing videojs player:', e);
+          }
+        }
+
+        // Clear any existing Video.js classes and reset
         videoElement.className = 'video-js vjs-default-skin';
+        videoElement.removeAttribute('data-vjs-player');
 
         // Ensure the video element has required attributes
         videoElement.setAttribute('controls', 'false');
         videoElement.setAttribute('preload', 'metadata');
 
         const player = videojs(videoElement, {
-          controls: false, // We'll use custom controls
-          responsive: true,
-          fluid: true,
+          controls: false, // Completely disable Video.js controls
+          responsive: false,
+          fluid: false,
           playbackRates: [0.5, 0.75, 1, 1.25, 1.5, 2],
           preload: 'metadata',
           techOrder: ['html5'],
+          userActions: {
+            hotkeys: false
+          },
           html5: {
             vhs: {
               overrideNative: true
             }
+          }
+        });
+
+        // Completely disable all Video.js UI components
+        player.ready(() => {
+          // Hide all Video.js UI elements
+          player.controls(false);
+          player.bigPlayButton.hide();
+
+          // Remove any control bar that might appear
+          const controlBar = player.getChild('ControlBar');
+          if (controlBar) {
+            controlBar.hide();
+          }
+
+          // Remove loading spinner
+          const loadingSpinner = player.getChild('LoadingSpinner');
+          if (loadingSpinner) {
+            loadingSpinner.hide();
           }
         });
 
@@ -216,6 +274,7 @@ const ModernVideoPlayer = ({
         }
       } catch (error) {
         console.error('Failed to initialize Video.js player:', error);
+        isInitialized = false;
       }
     };
 
@@ -226,14 +285,20 @@ const ModernVideoPlayer = ({
 
     return () => {
       clearTimeout(timeoutId);
-      if (playerRef.current) {
+      if (playerRef.current && typeof playerRef.current.dispose === 'function') {
         try {
+          console.log('Cleaning up Video.js player...');
           playerRef.current.dispose();
         } catch (error) {
           console.warn('Error disposing player:', error);
         }
         playerRef.current = null;
       }
+      // Also clean up any references on the video element
+      if (videoElement && videoElement.player) {
+        delete videoElement.player;
+      }
+      isInitialized = false;
     };
   }, []);
 
