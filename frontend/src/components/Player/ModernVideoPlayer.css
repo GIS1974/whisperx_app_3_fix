@@ -1,0 +1,340 @@
+.modern-video-player {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  background: #000;
+  border-radius: 12px;
+  overflow: hidden;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+}
+
+.video-container {
+  position: relative;
+  flex: 1;
+  background: #000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.video-js {
+  width: 100% !important;
+  height: 100% !important;
+  max-height: none;
+}
+
+.video-js .vjs-tech {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+}
+
+/* Subtitle Overlay */
+.subtitle-overlay {
+  position: absolute;
+  bottom: 80px;
+  left: 50%;
+  transform: translateX(-50%);
+  max-width: 90%;
+  z-index: 10;
+  pointer-events: none;
+}
+
+.subtitle-text {
+  background: rgba(0, 0, 0, 0.85);
+  color: white;
+  padding: 12px 24px;
+  border-radius: 8px;
+  font-size: 18px;
+  line-height: 1.4;
+  text-align: center;
+  backdrop-filter: blur(4px);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.5);
+}
+
+/* ESL Mode Indicator */
+.esl-mode-indicator {
+  position: absolute;
+  top: 16px;
+  right: 16px;
+  z-index: 10;
+}
+
+.mode-badge {
+  background: rgba(59, 130, 246, 0.9);
+  color: white;
+  padding: 6px 12px;
+  border-radius: 20px;
+  font-size: 12px;
+  font-weight: 600;
+  backdrop-filter: blur(4px);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+.mode-badge.mode-repeat {
+  background: rgba(239, 68, 68, 0.9);
+}
+
+.mode-badge.mode-shadowing {
+  background: rgba(34, 197, 94, 0.9);
+}
+
+.segment-info {
+  opacity: 0.8;
+  font-weight: 400;
+}
+
+/* Custom Controls */
+.custom-controls {
+  background: linear-gradient(to top, rgba(0, 0, 0, 0.9), rgba(0, 0, 0, 0.7));
+  padding: 16px 20px;
+  color: white;
+  backdrop-filter: blur(8px);
+}
+
+.progress-container {
+  margin-bottom: 16px;
+}
+
+.progress-slider {
+  width: 100%;
+  height: 6px;
+  -webkit-appearance: none;
+  appearance: none;
+  background: rgba(255, 255, 255, 0.3);
+  border-radius: 3px;
+  outline: none;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.progress-slider:hover {
+  background: rgba(255, 255, 255, 0.4);
+}
+
+.progress-slider::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 16px;
+  height: 16px;
+  background: #3b82f6;
+  border-radius: 50%;
+  cursor: pointer;
+  box-shadow: 0 2px 8px rgba(59, 130, 246, 0.5);
+  transition: all 0.2s ease;
+}
+
+.progress-slider::-webkit-slider-thumb:hover {
+  transform: scale(1.2);
+  box-shadow: 0 4px 12px rgba(59, 130, 246, 0.7);
+}
+
+.time-display {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-top: 8px;
+  font-family: 'SF Mono', 'Monaco', 'Inconsolata', 'Roboto Mono', monospace;
+  font-size: 14px;
+  color: rgba(255, 255, 255, 0.8);
+}
+
+.main-controls {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+}
+
+.playback-controls {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.control-btn {
+  background: rgba(255, 255, 255, 0.1);
+  border: none;
+  color: white;
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  font-size: 16px;
+  backdrop-filter: blur(4px);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.control-btn:hover {
+  background: rgba(255, 255, 255, 0.2);
+  transform: scale(1.05);
+}
+
+.control-btn:active {
+  transform: scale(0.95);
+}
+
+.control-btn.play-btn {
+  width: 52px;
+  height: 52px;
+  font-size: 20px;
+  background: rgba(59, 130, 246, 0.8);
+  border-color: rgba(59, 130, 246, 0.3);
+}
+
+.control-btn.play-btn:hover {
+  background: rgba(59, 130, 246, 1);
+}
+
+.control-btn.small {
+  width: 32px;
+  height: 32px;
+  font-size: 14px;
+}
+
+.control-btn.active {
+  background: rgba(59, 130, 246, 0.8);
+  border-color: rgba(59, 130, 246, 0.5);
+}
+
+/* ESL Controls */
+.esl-controls {
+  display: flex;
+  gap: 8px;
+}
+
+.esl-btn {
+  background: rgba(255, 255, 255, 0.1);
+  border: none;
+  color: white;
+  padding: 8px 16px;
+  border-radius: 20px;
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  backdrop-filter: blur(4px);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.esl-btn:hover {
+  background: rgba(255, 255, 255, 0.2);
+  transform: translateY(-1px);
+}
+
+.esl-btn.active {
+  background: rgba(59, 130, 246, 0.8);
+  border-color: rgba(59, 130, 246, 0.5);
+  box-shadow: 0 2px 8px rgba(59, 130, 246, 0.3);
+}
+
+/* Additional Controls */
+.additional-controls {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.speed-control {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.speed-display {
+  min-width: 40px;
+  text-align: center;
+  font-size: 14px;
+  font-weight: 500;
+}
+
+.volume-control {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.volume-slider {
+  width: 80px;
+  height: 4px;
+  -webkit-appearance: none;
+  appearance: none;
+  background: rgba(255, 255, 255, 0.3);
+  border-radius: 2px;
+  outline: none;
+  cursor: pointer;
+}
+
+.volume-slider::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 12px;
+  height: 12px;
+  background: white;
+  border-radius: 50%;
+  cursor: pointer;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.3);
+}
+
+/* Shadowing Controls */
+.shadowing-controls {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  margin-top: 12px;
+  padding-top: 12px;
+  border-top: 1px solid rgba(255, 255, 255, 0.1);
+  font-size: 14px;
+}
+
+.delay-display {
+  min-width: 40px;
+  text-align: center;
+  font-weight: 500;
+  color: rgba(34, 197, 94, 1);
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  .main-controls {
+    flex-direction: column;
+    gap: 12px;
+  }
+  
+  .additional-controls {
+    justify-content: center;
+  }
+  
+  .subtitle-text {
+    font-size: 16px;
+    padding: 8px 16px;
+  }
+  
+  .control-btn {
+    width: 40px;
+    height: 40px;
+  }
+  
+  .control-btn.play-btn {
+    width: 48px;
+    height: 48px;
+  }
+}
+
+/* Focus styles for accessibility */
+.control-btn:focus,
+.esl-btn:focus,
+.progress-slider:focus,
+.volume-slider:focus {
+  outline: 2px solid rgba(59, 130, 246, 0.8);
+  outline-offset: 2px;
+}
