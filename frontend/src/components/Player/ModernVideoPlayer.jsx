@@ -32,6 +32,17 @@ const ModernVideoPlayer = ({
   const [segments, setSegments] = useState([]);
   const [repeatSegment, setRepeatSegment] = useState(null);
 
+  // Toggle play/pause
+  const togglePlay = useCallback(() => {
+    if (!playerRef.current) return;
+
+    if (isPlaying) {
+      playerRef.current.pause();
+    } else {
+      playerRef.current.play();
+    }
+  }, [isPlaying]);
+
   // Keyboard event handling
   useEffect(() => {
     const handleKeyDown = (event) => {
@@ -80,6 +91,50 @@ const ModernVideoPlayer = ({
       setSegments(parsedSegments);
     }
   }, [transcription]);
+
+  // Define handleESLModeLogic before it's used in handleTimeUpdate
+  const handleESLModeLogic = (time, segmentIndex) => {
+    if (eslMode === ESL_MODES.REPEAT && repeatSegment !== null) {
+      const segment = segments[repeatSegment];
+      if (segment && time >= segment.end) {
+        // Loop back to start of segment
+        playerRef.current.currentTime(segment.start);
+      }
+    } else if (eslMode === ESL_MODES.SHADOWING && segmentIndex !== -1) {
+      const segment = segments[segmentIndex];
+      if (segment && time >= segment.end) {
+        // Pause for shadowing delay
+        playerRef.current.pause();
+        setTimeout(() => {
+          if (playerRef.current && eslMode === ESL_MODES.SHADOWING) {
+            playerRef.current.play();
+          }
+        }, shadowingDelay * 1000);
+      }
+    }
+  };
+
+  // Define handleTimeUpdate before it's used in useEffect
+  const handleTimeUpdate = useCallback(() => {
+    if (!playerRef.current) return;
+
+    const time = playerRef.current.currentTime();
+    setCurrentTime(time);
+
+    // Find current segment
+    const currentSegment = segments.findIndex(segment =>
+      time >= segment.start && time < segment.end
+    );
+
+    if (currentSegment !== -1 && currentSegment !== currentSegmentIndex) {
+      onSegmentChange?.(currentSegment);
+    }
+
+    onTimeUpdate?.(time);
+
+    // Handle ESL mode logic
+    handleESLModeLogic(time, currentSegment);
+  }, [segments, currentSegmentIndex, eslMode, repeatSegment, shadowingDelay, onSegmentChange, onTimeUpdate]);
 
   // Initialize Video.js player
   useEffect(() => {
@@ -148,58 +203,6 @@ const ModernVideoPlayer = ({
       setIsPlaying(false);
     }
   }, [mediaFile]);
-
-  const handleTimeUpdate = useCallback(() => {
-    if (!playerRef.current) return;
-
-    const time = playerRef.current.currentTime();
-    setCurrentTime(time);
-
-    // Find current segment
-    const currentSegment = segments.findIndex(segment => 
-      time >= segment.start && time < segment.end
-    );
-
-    if (currentSegment !== -1 && currentSegment !== currentSegmentIndex) {
-      onSegmentChange?.(currentSegment);
-    }
-
-    onTimeUpdate?.(time);
-
-    // Handle ESL mode logic
-    handleESLModeLogic(time, currentSegment);
-  }, [segments, currentSegmentIndex, eslMode, repeatSegment, onSegmentChange, onTimeUpdate]);
-
-  const handleESLModeLogic = (time, segmentIndex) => {
-    if (eslMode === ESL_MODES.REPEAT && repeatSegment !== null) {
-      const segment = segments[repeatSegment];
-      if (segment && time >= segment.end) {
-        // Loop back to start of segment
-        playerRef.current.currentTime(segment.start);
-      }
-    } else if (eslMode === ESL_MODES.SHADOWING && segmentIndex !== -1) {
-      const segment = segments[segmentIndex];
-      if (segment && time >= segment.end) {
-        // Pause for shadowing delay
-        playerRef.current.pause();
-        setTimeout(() => {
-          if (playerRef.current && eslMode === ESL_MODES.SHADOWING) {
-            playerRef.current.play();
-          }
-        }, shadowingDelay * 1000);
-      }
-    }
-  };
-
-  const togglePlay = () => {
-    if (!playerRef.current) return;
-
-    if (isPlaying) {
-      playerRef.current.pause();
-    } else {
-      playerRef.current.play();
-    }
-  };
 
   const seekToSegment = (segmentIndex) => {
     if (!playerRef.current || !segments[segmentIndex]) return;
