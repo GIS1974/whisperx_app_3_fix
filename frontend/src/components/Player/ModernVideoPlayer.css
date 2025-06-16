@@ -79,8 +79,7 @@
   transform: translateX(-50%);
   max-width: 90%;
   z-index: 10;
-  pointer-events: auto;
-  cursor: pointer;
+  pointer-events: none;
 }
 
 .subtitle-text {
@@ -94,31 +93,6 @@
   backdrop-filter: blur(4px);
   border: 1px solid rgba(255, 255, 255, 0.1);
   box-shadow: 0 4px 16px rgba(0, 0, 0, 0.5);
-  transition: all 0.2s ease;
-}
-
-.subtitle-text.clickable:hover {
-  background: rgba(0, 0, 0, 0.95);
-  border: 1px solid rgba(59, 130, 246, 0.5);
-  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.7), 0 0 0 2px rgba(59, 130, 246, 0.3);
-  transform: scale(1.02);
-}
-
-.subtitle-text.clickable::after {
-  content: " 🔁";
-  opacity: 0;
-  transition: opacity 0.2s ease;
-  font-size: 0.8em;
-  margin-left: 8px;
-}
-
-.subtitle-text.clickable:hover::after {
-  opacity: 0.7;
-}
-
-.subtitle-text.non-clickable {
-  pointer-events: none;
-  cursor: default;
 }
 
 /* ESL Mode Indicator */

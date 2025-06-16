@@ -143,9 +143,9 @@ export const PlayerPage = ({ onPlayerPageInfoChange }) => {
     }
   };
 
-  // Handler for transcript panel navigation
+  // Handler for transcript panel navigation - now activates REPEAT mode
   const handleSegmentClick = (segmentIndex) => {
-    videoPlayer.seekToSegment(segmentIndex);
+    eslModes.activateRepeatMode(segmentIndex);
   };
 
   // Handler for repeat mode activation from transcript
@@ -242,6 +242,8 @@ export const PlayerPage = ({ onPlayerPageInfoChange }) => {
                 onPlayerReady={(player) => {
                   videoPlayer.initializePlayer(player);
                 }}
+                eslMode={eslModes.eslMode}
+                repeatSegment={eslModes.repeatSegment}
                 className="w-full h-full"
               />
             </div>

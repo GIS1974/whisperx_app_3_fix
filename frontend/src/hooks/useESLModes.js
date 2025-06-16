@@ -36,8 +36,9 @@ export const useESLModes = (playerRef, segments = []) => {
         if (repeatSegment !== null) {
           const segment = segments[repeatSegment];
           if (segment && currentTime >= segment.end - 0.1) {
-            // Loop back to start of segment with small buffer to prevent cutoff
-            player.currentTime(segment.start);
+            // Pause at the end of segment instead of looping
+            player.pause();
+            player.currentTime(segment.end);
           }
         }
         break;
@@ -102,7 +103,7 @@ export const useESLModes = (playerRef, segments = []) => {
     if (!playerRef.current || !segments[segmentIndex]) return;
 
     const segment = segments[segmentIndex];
-    
+
     // Clear any existing timeouts
     if (shadowingTimeoutRef.current) {
       clearTimeout(shadowingTimeoutRef.current);
@@ -112,7 +113,7 @@ export const useESLModes = (playerRef, segments = []) => {
     setEslMode(ESL_MODES.REPEAT);
     setRepeatSegment(segmentIndex);
     setIsInShadowingPause(false);
-    
+
     // Jump to the start of the segment
     playerRef.current.currentTime(segment.start);
   }, [segments]);
@@ -137,15 +138,12 @@ export const useESLModes = (playerRef, segments = []) => {
 
     const player = playerRef.current;
     const segment = segments[repeatSegment];
-    
+
     if (!segment) return false;
 
     if (player.paused()) {
-      // If paused, play from current position or start of segment
-      const currentTime = player.currentTime();
-      if (currentTime < segment.start || currentTime >= segment.end) {
-        player.currentTime(segment.start);
-      }
+      // If paused, always restart from beginning of segment
+      player.currentTime(segment.start);
       player.play();
     } else {
       // If playing, pause

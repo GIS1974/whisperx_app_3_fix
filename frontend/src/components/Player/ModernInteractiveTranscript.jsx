@@ -293,11 +293,11 @@ const ModernInteractiveTranscript = ({
       <div className="transcript-instructions">
         <div className="instruction-item">
           <span className="instruction-icon">👆</span>
-          <span>Click to jump to segment</span>
+          <span>Click to activate repeat mode</span>
         </div>
         <div className="instruction-item">
-          <span className="instruction-icon">👆👆</span>
-          <span>Double-click for repeat mode</span>
+          <span className="instruction-icon">🔁</span>
+          <span>Click repeat button for repeat mode</span>
         </div>
         {editMode && (
           <div className="instruction-item">

@@ -18,11 +18,14 @@ const ModernVideoPlayer = ({
   currentSegmentIndex,
   onModeChange,
   onPlayerReady,
+  eslMode: externalEslMode,
+  repeatSegment: externalRepeatSegment,
   className = ''
 }) => {
   const videoRef = useRef(null);
   const playerRef = useRef(null);
-  const [eslMode, setEslMode] = useState(ESL_MODES.NORMAL);
+  const eslMode = externalEslMode || ESL_MODES.NORMAL;
+  const repeatSegment = externalRepeatSegment;
   const [playbackRate, setPlaybackRate] = useState(1.0);
   const [showCaptions, setShowCaptions] = useState(true);
   const [shadowingDelay, setShadowingDelay] = useState(2);
@@ -31,7 +34,6 @@ const ModernVideoPlayer = ({
   const [duration, setDuration] = useState(0);
   const [volume, setVolume] = useState(1);
   const [segments, setSegments] = useState([]);
-  const [repeatSegment, setRepeatSegment] = useState(null);
 
   // Toggle play/pause
   const togglePlay = useCallback(() => {
@@ -42,6 +44,25 @@ const ModernVideoPlayer = ({
       return;
     }
 
+    // Handle REPEAT mode specially
+    if (eslMode === ESL_MODES.REPEAT && repeatSegment !== null) {
+      const segment = segments[repeatSegment];
+      if (segment) {
+        if (isPlaying) {
+          console.log('Pausing video in REPEAT mode');
+          playerRef.current.pause();
+        } else {
+          console.log('Playing video in REPEAT mode - restarting from segment beginning');
+          playerRef.current.currentTime(segment.start);
+          playerRef.current.play().catch(error => {
+            console.error('Error playing video:', error);
+          });
+        }
+        return;
+      }
+    }
+
+    // Normal play/pause behavior
     if (isPlaying) {
       console.log('Pausing video');
       playerRef.current.pause();
@@ -51,7 +72,7 @@ const ModernVideoPlayer = ({
         console.error('Error playing video:', error);
       });
     }
-  }, [isPlaying]);
+  }, [isPlaying, eslMode, repeatSegment, segments]);
 
   // Keyboard event handling
   useEffect(() => {
@@ -64,13 +85,10 @@ const ModernVideoPlayer = ({
           const segment = segments[repeatSegment];
           if (segment && playerRef.current) {
             const player = playerRef.current;
-            const currentTime = player.currentTime();
 
             if (player.paused()) {
-              // If paused, play from current position or start of segment
-              if (currentTime < segment.start || currentTime >= segment.end) {
-                player.currentTime(segment.start);
-              }
+              // If paused, always restart from beginning of segment
+              player.currentTime(segment.start);
               player.play();
             } else {
               // If playing, pause
@@ -107,8 +125,9 @@ const ModernVideoPlayer = ({
     if (eslMode === ESL_MODES.REPEAT && repeatSegment !== null) {
       const segment = segments[repeatSegment];
       if (segment && time >= segment.end) {
-        // Loop back to start of segment
-        playerRef.current.currentTime(segment.start);
+        // Pause at the end of segment instead of looping
+        playerRef.current.pause();
+        playerRef.current.currentTime(segment.end);
       }
     } else if (eslMode === ESL_MODES.SHADOWING && segmentIndex !== -1) {
       const segment = segments[segmentIndex];
@@ -354,28 +373,7 @@ const ModernVideoPlayer = ({
   };
 
   const changeESLMode = (mode) => {
-    setEslMode(mode);
-    setRepeatSegment(null);
     onModeChange?.(mode);
-
-    if (mode === ESL_MODES.REPEAT && currentSegmentIndex !== -1) {
-      setRepeatSegment(currentSegmentIndex);
-      seekToSegment(currentSegmentIndex);
-    }
-  };
-
-  const activateRepeatMode = (segmentIndex) => {
-    setEslMode(ESL_MODES.REPEAT);
-    setRepeatSegment(segmentIndex);
-    seekToSegment(segmentIndex);
-    onModeChange?.(ESL_MODES.REPEAT);
-  };
-
-  const handleSubtitleClick = () => {
-    // Only allow subtitle clicking in NORMAL mode
-    if (eslMode === ESL_MODES.NORMAL && currentSegmentIndex !== -1) {
-      activateRepeatMode(currentSegmentIndex);
-    }
   };
 
   const changePlaybackRate = (rate) => {
@@ -425,11 +423,8 @@ const ModernVideoPlayer = ({
 
         {/* Subtitle Overlay */}
         {showCaptions && currentSegment && (
-          <div
-            className="subtitle-overlay"
-            onClick={handleSubtitleClick}
-          >
-            <div className={`subtitle-text ${eslMode === ESL_MODES.NORMAL ? 'clickable' : 'non-clickable'}`}>
+          <div className="subtitle-overlay">
+            <div className="subtitle-text">
               {currentSegment.text}
             </div>
           </div>
