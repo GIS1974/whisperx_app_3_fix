@@ -371,6 +371,13 @@ const ModernVideoPlayer = ({
     onModeChange?.(ESL_MODES.REPEAT);
   };
 
+  const handleSubtitleClick = () => {
+    // Only allow subtitle clicking in NORMAL mode
+    if (eslMode === ESL_MODES.NORMAL && currentSegmentIndex !== -1) {
+      activateRepeatMode(currentSegmentIndex);
+    }
+  };
+
   const changePlaybackRate = (rate) => {
     if (!playerRef.current) return;
     setPlaybackRate(rate);
@@ -418,8 +425,11 @@ const ModernVideoPlayer = ({
 
         {/* Subtitle Overlay */}
         {showCaptions && currentSegment && (
-          <div className="subtitle-overlay">
-            <div className="subtitle-text">
+          <div
+            className="subtitle-overlay"
+            onClick={handleSubtitleClick}
+          >
+            <div className={`subtitle-text ${eslMode === ESL_MODES.NORMAL ? 'clickable' : 'non-clickable'}`}>
               {currentSegment.text}
             </div>
           </div>
