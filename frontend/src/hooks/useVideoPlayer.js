@@ -40,66 +40,31 @@ export const useVideoPlayer = (segments = []) => {
     }
   }, [currentTime, findCurrentSegment, currentSegmentIndex]);
 
-  // Initialize player
+  // Initialize player - just store reference, let ModernVideoPlayer handle events
   const initializePlayer = useCallback((player) => {
     if (!player) return;
 
     playerRef.current = player;
     setError(null);
 
-    // Set up event listeners
-    player.on('loadstart', () => {
-      setIsLoading(true);
-      setError(null);
-    });
+    // Get initial state from player
+    setDuration(player.duration() || 0);
+    setVolume(player.volume() || 1);
+    setPlaybackRate(player.playbackRate() || 1);
+    setIsLoading(false);
 
-    player.on('loadedmetadata', () => {
-      setDuration(player.duration() || 0);
-      setIsLoading(false);
-    });
+    // Note: Event listeners are handled by ModernVideoPlayer to avoid conflicts
+  }, []);
 
-    player.on('canplay', () => {
-      setIsLoading(false);
-    });
-
-    player.on('play', () => {
-      setIsPlaying(true);
-    });
-
-    player.on('pause', () => {
-      setIsPlaying(false);
-    });
-
-    player.on('timeupdate', () => {
-      const time = player.currentTime() || 0;
-      setCurrentTime(time);
-    });
-
-    player.on('volumechange', () => {
-      setVolume(player.volume() || 0);
-    });
-
-    player.on('ratechange', () => {
-      setPlaybackRate(player.playbackRate() || 1);
-    });
-
-    player.on('progress', () => {
-      const bufferedEnd = player.buffered().length > 0 
-        ? player.buffered().end(player.buffered().length - 1)
-        : 0;
-      setBuffered(bufferedEnd);
-    });
-
-    player.on('error', (e) => {
-      console.error('Video player error:', e);
-      setError('Failed to load video');
-      setIsLoading(false);
-    });
-
-    player.on('ended', () => {
-      setIsPlaying(false);
-    });
-
+  // Sync state from ModernVideoPlayer
+  const syncPlayerState = useCallback((stateUpdate) => {
+    if (stateUpdate.isPlaying !== undefined) setIsPlaying(stateUpdate.isPlaying);
+    if (stateUpdate.currentTime !== undefined) setCurrentTime(stateUpdate.currentTime);
+    if (stateUpdate.duration !== undefined) setDuration(stateUpdate.duration);
+    if (stateUpdate.volume !== undefined) setVolume(stateUpdate.volume);
+    if (stateUpdate.playbackRate !== undefined) setPlaybackRate(stateUpdate.playbackRate);
+    if (stateUpdate.error !== undefined) setError(stateUpdate.error);
+    if (stateUpdate.isLoading !== undefined) setIsLoading(stateUpdate.isLoading);
   }, []);
 
   // Play/pause toggle
@@ -251,12 +216,13 @@ export const useVideoPlayer = (segments = []) => {
     buffered,
     isLoading,
     error,
-    
+
     // Player reference
     playerRef,
-    
+
     // Actions
     initializePlayer,
+    syncPlayerState,
     togglePlay,
     seekTo,
     seekToSegment,
@@ -266,7 +232,7 @@ export const useVideoPlayer = (segments = []) => {
     toggleMute,
     changePlaybackRate,
     skip,
-    
+
     // Utilities
     getCurrentSegment,
     getProgress,

@@ -242,6 +242,7 @@ export const PlayerPage = ({ onPlayerPageInfoChange }) => {
                 onPlayerReady={(player) => {
                   videoPlayer.initializePlayer(player);
                 }}
+                onPlayerStateChange={videoPlayer.syncPlayerState}
                 eslMode={eslModes.eslMode}
                 repeatSegment={eslModes.repeatSegment}
                 segments={segments}

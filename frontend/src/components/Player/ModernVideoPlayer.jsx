@@ -21,6 +21,7 @@ const ModernVideoPlayer = ({
   eslMode: externalEslMode,
   repeatSegment: externalRepeatSegment,
   segments: externalSegments,
+  onPlayerStateChange,
   className = ''
 }) => {
   const videoRef = useRef(null);
@@ -109,14 +110,15 @@ const ModernVideoPlayer = ({
 
   // Segments are now provided externally via props
 
-  // ESL mode logic is now handled by the parent component via onTimeUpdate callback
-
   // Define handleTimeUpdate before it's used in useEffect
   const handleTimeUpdate = useCallback(() => {
     if (!playerRef.current) return;
 
     const time = playerRef.current.currentTime();
     setCurrentTime(time);
+
+    // Notify parent about time change
+    onPlayerStateChange?.({ currentTime: time });
 
     // Find current segment
     const currentSegment = segments.findIndex(segment =>
@@ -129,7 +131,7 @@ const ModernVideoPlayer = ({
 
     // Let parent handle ESL mode logic via onTimeUpdate callback
     onTimeUpdate?.(time);
-  }, [segments, currentSegmentIndex, onSegmentChange, onTimeUpdate]);
+  }, [segments, currentSegmentIndex, onSegmentChange, onTimeUpdate, onPlayerStateChange]);
 
   // Initialize Video.js player with proper StrictMode handling
   useEffect(() => {
@@ -243,14 +245,27 @@ const ModernVideoPlayer = ({
         // Set up event listeners
         player.on('timeupdate', handleTimeUpdate);
         player.on('loadedmetadata', () => {
-          setDuration(player.duration() || 0);
-          console.log('Video metadata loaded, duration:', player.duration());
+          const duration = player.duration() || 0;
+          setDuration(duration);
+          onPlayerStateChange?.({ duration });
+          console.log('Video metadata loaded, duration:', duration);
         });
-        player.on('play', () => setIsPlaying(true));
-        player.on('pause', () => setIsPlaying(false));
-        player.on('volumechange', () => setVolume(player.volume() || 1));
+        player.on('play', () => {
+          setIsPlaying(true);
+          onPlayerStateChange?.({ isPlaying: true });
+        });
+        player.on('pause', () => {
+          setIsPlaying(false);
+          onPlayerStateChange?.({ isPlaying: false });
+        });
+        player.on('volumechange', () => {
+          const volume = player.volume() || 1;
+          setVolume(volume);
+          onPlayerStateChange?.({ volume });
+        });
         player.on('error', (e) => {
           console.error('Video player error:', e);
+          onPlayerStateChange?.({ error: 'Failed to load video' });
         });
 
         // Notify parent component that player is ready
