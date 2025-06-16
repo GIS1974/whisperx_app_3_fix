@@ -20,12 +20,14 @@ const ModernVideoPlayer = ({
   onPlayerReady,
   eslMode: externalEslMode,
   repeatSegment: externalRepeatSegment,
+  segments: externalSegments,
   className = ''
 }) => {
   const videoRef = useRef(null);
   const playerRef = useRef(null);
   const eslMode = externalEslMode || ESL_MODES.NORMAL;
   const repeatSegment = externalRepeatSegment;
+  const segments = externalSegments || [];
   const [playbackRate, setPlaybackRate] = useState(1.0);
   const [showCaptions, setShowCaptions] = useState(true);
   const [shadowingDelay, setShadowingDelay] = useState(2);
@@ -33,7 +35,6 @@ const ModernVideoPlayer = ({
   const [currentTime, setCurrentTime] = useState(0);
   const [duration, setDuration] = useState(0);
   const [volume, setVolume] = useState(1);
-  const [segments, setSegments] = useState([]);
 
   // Toggle play/pause
   const togglePlay = useCallback(() => {
@@ -106,42 +107,9 @@ const ModernVideoPlayer = ({
     return () => document.removeEventListener('keydown', handleKeyDown);
   }, [eslMode, repeatSegment, segments, togglePlay]);
 
-  // Parse segments from transcription
-  useEffect(() => {
-    if (transcription && transcription.segments) {
-      const parsedSegments = transcription.segments.map((segment, index) => ({
-        id: index,
-        start: segment.start,
-        end: segment.end,
-        text: segment.text?.trim() || '',
-        duration: segment.end - segment.start
-      }));
-      setSegments(parsedSegments);
-    }
-  }, [transcription]);
+  // Segments are now provided externally via props
 
-  // Define handleESLModeLogic before it's used in handleTimeUpdate
-  const handleESLModeLogic = (time, segmentIndex) => {
-    if (eslMode === ESL_MODES.REPEAT && repeatSegment !== null) {
-      const segment = segments[repeatSegment];
-      if (segment && time >= segment.end) {
-        // Pause at the end of segment instead of looping
-        playerRef.current.pause();
-        playerRef.current.currentTime(segment.end);
-      }
-    } else if (eslMode === ESL_MODES.SHADOWING && segmentIndex !== -1) {
-      const segment = segments[segmentIndex];
-      if (segment && time >= segment.end) {
-        // Pause for shadowing delay
-        playerRef.current.pause();
-        setTimeout(() => {
-          if (playerRef.current && eslMode === ESL_MODES.SHADOWING) {
-            playerRef.current.play();
-          }
-        }, shadowingDelay * 1000);
-      }
-    }
-  };
+  // ESL mode logic is now handled by the parent component via onTimeUpdate callback
 
   // Define handleTimeUpdate before it's used in useEffect
   const handleTimeUpdate = useCallback(() => {
@@ -159,11 +127,9 @@ const ModernVideoPlayer = ({
       onSegmentChange?.(currentSegment);
     }
 
+    // Let parent handle ESL mode logic via onTimeUpdate callback
     onTimeUpdate?.(time);
-
-    // Handle ESL mode logic
-    handleESLModeLogic(time, currentSegment);
-  }, [segments, currentSegmentIndex, eslMode, repeatSegment, shadowingDelay, onSegmentChange, onTimeUpdate]);
+  }, [segments, currentSegmentIndex, onSegmentChange, onTimeUpdate]);
 
   // Initialize Video.js player with proper StrictMode handling
   useEffect(() => {

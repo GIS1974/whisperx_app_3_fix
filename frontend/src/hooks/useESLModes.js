@@ -35,10 +35,16 @@ export const useESLModes = (playerRef, segments = []) => {
       case ESL_MODES.REPEAT:
         if (repeatSegment !== null) {
           const segment = segments[repeatSegment];
-          if (segment && currentTime >= segment.end - 0.1) {
-            // Pause at the end of segment instead of looping
-            player.pause();
-            player.currentTime(segment.end);
+          if (segment) {
+            // If we've gone past the end of the repeat segment, pause and set to end
+            if (currentTime >= segment.end - 0.1) {
+              player.pause();
+              player.currentTime(segment.end);
+            }
+            // If we've gone before the start of the repeat segment, jump back to start
+            else if (currentTime < segment.start) {
+              player.currentTime(segment.start);
+            }
           }
         }
         break;

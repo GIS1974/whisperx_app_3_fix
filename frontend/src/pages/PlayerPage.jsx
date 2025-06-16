@@ -244,6 +244,7 @@ export const PlayerPage = ({ onPlayerPageInfoChange }) => {
                 }}
                 eslMode={eslModes.eslMode}
                 repeatSegment={eslModes.repeatSegment}
+                segments={segments}
                 className="w-full h-full"
               />
             </div>
