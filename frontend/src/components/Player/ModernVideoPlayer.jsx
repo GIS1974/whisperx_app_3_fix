@@ -39,22 +39,20 @@ const ModernVideoPlayer = ({
 
   // Toggle play/pause
   const togglePlay = useCallback(() => {
-    console.log('togglePlay called - isPlaying:', isPlaying, 'hasPlayer:', !!playerRef.current);
-
     if (!playerRef.current) {
-      console.log('No player available for togglePlay');
       return;
     }
+
+    // Use the player's actual paused state instead of React state to avoid race conditions
+    const isPaused = playerRef.current.paused();
 
     // Handle REPEAT mode specially
     if (eslMode === ESL_MODES.REPEAT && repeatSegment !== null) {
       const segment = segments[repeatSegment];
       if (segment) {
-        if (isPlaying) {
-          console.log('Pausing video in REPEAT mode');
+        if (!isPaused) {
           playerRef.current.pause();
         } else {
-          console.log('Playing video in REPEAT mode - restarting from segment beginning');
           playerRef.current.currentTime(segment.start);
           playerRef.current.play().catch(error => {
             console.error('Error playing video:', error);
@@ -65,16 +63,14 @@ const ModernVideoPlayer = ({
     }
 
     // Normal play/pause behavior
-    if (isPlaying) {
-      console.log('Pausing video');
+    if (!isPaused) {
       playerRef.current.pause();
     } else {
-      console.log('Playing video');
       playerRef.current.play().catch(error => {
         console.error('Error playing video:', error);
       });
     }
-  }, [isPlaying, eslMode, repeatSegment, segments]);
+  }, [eslMode, repeatSegment, segments]);
 
   // Keyboard event handling
   useEffect(() => {
