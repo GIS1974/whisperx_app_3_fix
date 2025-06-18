@@ -162,10 +162,14 @@ export const useESLModes = (playerRef, segments = []) => {
 
     const segment = segments[segmentIndex];
 
-    // Clear any existing timeouts
+    // Clear any existing timeouts and intervals
     if (shadowingTimeoutRef.current) {
       clearTimeout(shadowingTimeoutRef.current);
       shadowingTimeoutRef.current = null;
+    }
+    if (repeatCheckIntervalRef.current) {
+      clearInterval(repeatCheckIntervalRef.current);
+      repeatCheckIntervalRef.current = null;
     }
 
     setEslMode(ESL_MODES.REPEAT);
