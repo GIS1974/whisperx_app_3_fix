@@ -11,18 +11,64 @@ export const useESLModes = (playerRef, segments = []) => {
   const [repeatSegment, setRepeatSegment] = useState(null);
   const [shadowingDelay, setShadowingDelay] = useState(2);
   const [isInShadowingPause, setIsInShadowingPause] = useState(false);
-  
+
   const shadowingTimeoutRef = useRef(null);
   const lastSegmentRef = useRef(-1);
+  const repeatCheckIntervalRef = useRef(null);
 
-  // Clean up timeouts on unmount
+  // Clean up timeouts and intervals on unmount
   useEffect(() => {
     return () => {
       if (shadowingTimeoutRef.current) {
         clearTimeout(shadowingTimeoutRef.current);
       }
+      if (repeatCheckIntervalRef.current) {
+        clearInterval(repeatCheckIntervalRef.current);
+      }
     };
   }, []);
+
+  // Manage repeat mode interval based on state changes
+  useEffect(() => {
+    // Clear interval if not in repeat mode or no repeat segment
+    if (eslMode !== ESL_MODES.REPEAT || repeatSegment === null) {
+      if (repeatCheckIntervalRef.current) {
+        clearInterval(repeatCheckIntervalRef.current);
+        repeatCheckIntervalRef.current = null;
+      }
+      return;
+    }
+
+    // If we're in repeat mode and have a segment, ensure interval is running
+    if (!repeatCheckIntervalRef.current && playerRef.current && segments[repeatSegment]) {
+      const segment = segments[repeatSegment];
+
+      repeatCheckIntervalRef.current = setInterval(() => {
+        if (!playerRef.current) {
+          if (repeatCheckIntervalRef.current) {
+            clearInterval(repeatCheckIntervalRef.current);
+            repeatCheckIntervalRef.current = null;
+          }
+          return;
+        }
+
+        const player = playerRef.current;
+        const currentTime = player.currentTime();
+
+        // Check if we've reached the end of the segment
+        if (currentTime >= segment.end - 0.05) {
+          console.log('REPEAT mode interval: Pausing at segment end', { currentTime, segmentEnd: segment.end });
+          player.pause();
+          player.currentTime(segment.end);
+        }
+        // Check if we've gone before the start (user seeked backward)
+        else if (currentTime < segment.start) {
+          console.log('REPEAT mode interval: Jumping back to segment start', { currentTime, segmentStart: segment.start });
+          player.currentTime(segment.start);
+        }
+      }, 100); // Check every 100ms for more precise control
+    }
+  }, [eslMode, repeatSegment, segments]);
 
   // Handle ESL mode logic based on current time and segment
   const handleESLModeLogic = useCallback((currentTime, currentSegmentIndex) => {
@@ -38,11 +84,13 @@ export const useESLModes = (playerRef, segments = []) => {
           if (segment) {
             // If we've gone past the end of the repeat segment, pause and set to end
             if (currentTime >= segment.end - 0.1) {
+              console.log('REPEAT mode: Pausing at segment end', { currentTime, segmentEnd: segment.end });
               player.pause();
               player.currentTime(segment.end);
             }
             // If we've gone before the start of the repeat segment, jump back to start
             else if (currentTime < segment.start) {
+              console.log('REPEAT mode: Jumping back to segment start', { currentTime, segmentStart: segment.start });
               player.currentTime(segment.start);
             }
           }
@@ -52,17 +100,17 @@ export const useESLModes = (playerRef, segments = []) => {
       case ESL_MODES.SHADOWING:
         if (currentSegment && currentSegmentIndex !== lastSegmentRef.current) {
           lastSegmentRef.current = currentSegmentIndex;
-          
+
           // Check if we've reached the end of a segment
           if (currentTime >= currentSegment.end - 0.1) {
             player.pause();
             setIsInShadowingPause(true);
-            
+
             // Clear any existing timeout
             if (shadowingTimeoutRef.current) {
               clearTimeout(shadowingTimeoutRef.current);
             }
-            
+
             // Resume after delay
             shadowingTimeoutRef.current = setTimeout(() => {
               if (player && eslMode === ESL_MODES.SHADOWING) {
@@ -83,10 +131,14 @@ export const useESLModes = (playerRef, segments = []) => {
 
   // Change ESL mode
   const changeESLMode = useCallback((mode) => {
-    // Clear any existing timeouts
+    // Clear any existing timeouts and intervals
     if (shadowingTimeoutRef.current) {
       clearTimeout(shadowingTimeoutRef.current);
       shadowingTimeoutRef.current = null;
+    }
+    if (repeatCheckIntervalRef.current) {
+      clearInterval(repeatCheckIntervalRef.current);
+      repeatCheckIntervalRef.current = null;
     }
 
     setEslMode(mode);
@@ -122,6 +174,8 @@ export const useESLModes = (playerRef, segments = []) => {
 
     // Jump to the start of the segment
     playerRef.current.currentTime(segment.start);
+
+    console.log('REPEAT mode activated for segment', segmentIndex, segment);
   }, [segments]);
 
   // Deactivate repeat mode (return to normal)
@@ -129,10 +183,14 @@ export const useESLModes = (playerRef, segments = []) => {
     setEslMode(ESL_MODES.NORMAL);
     setRepeatSegment(null);
     setIsInShadowingPause(false);
-    
+
     if (shadowingTimeoutRef.current) {
       clearTimeout(shadowingTimeoutRef.current);
       shadowingTimeoutRef.current = null;
+    }
+    if (repeatCheckIntervalRef.current) {
+      clearInterval(repeatCheckIntervalRef.current);
+      repeatCheckIntervalRef.current = null;
     }
   }, []);
 
