@@ -1,4 +1,5 @@
 import { useState, useCallback, useRef, useEffect } from 'react';
+import { ESL_MODES } from './useESLModes';
 
 export const useVideoPlayer = (segments = []) => {
   const [isPlaying, setIsPlaying] = useState(false);
@@ -10,6 +11,10 @@ export const useVideoPlayer = (segments = []) => {
   const [buffered, setBuffered] = useState(0);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState(null);
+
+  // ESL mode state for segment detection
+  const [eslMode, setEslMode] = useState(null);
+  const [repeatSegment, setRepeatSegment] = useState(null);
 
   const playerRef = useRef(null);
   const timeUpdateIntervalRef = useRef(null);
@@ -26,11 +31,17 @@ export const useVideoPlayer = (segments = []) => {
   // Find current segment based on time
   const findCurrentSegment = useCallback((time) => {
     if (!segments.length) return -1;
-    
-    return segments.findIndex(segment => 
+
+    // In REPEAT mode, the current segment should always be the repeat segment
+    if (eslMode === ESL_MODES.REPEAT && repeatSegment !== null) {
+      return repeatSegment;
+    }
+
+    // Normal segment detection based on time
+    return segments.findIndex(segment =>
       time >= segment.start && time < segment.end
     );
-  }, [segments]);
+  }, [segments, eslMode, repeatSegment]);
 
   // Update current segment when time changes
   useEffect(() => {
@@ -182,6 +193,12 @@ export const useVideoPlayer = (segments = []) => {
     return playerRef.current && !isLoading && !error;
   }, [isLoading, error]);
 
+  // Update ESL mode information
+  const updateESLMode = useCallback((newEslMode, newRepeatSegment) => {
+    setEslMode(newEslMode);
+    setRepeatSegment(newRepeatSegment);
+  }, []);
+
   // Get player state summary
   const getPlayerState = useCallback(() => {
     return {
@@ -232,6 +249,7 @@ export const useVideoPlayer = (segments = []) => {
     toggleMute,
     changePlaybackRate,
     skip,
+    updateESLMode,
 
     // Utilities
     getCurrentSegment,

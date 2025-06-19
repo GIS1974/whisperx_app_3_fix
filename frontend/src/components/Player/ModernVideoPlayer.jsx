@@ -117,9 +117,17 @@ const ModernVideoPlayer = ({
     onPlayerStateChange?.({ currentTime: time });
 
     // Find current segment
-    const currentSegment = segments.findIndex(segment =>
-      time >= segment.start && time < segment.end
-    );
+    let currentSegment;
+
+    // In REPEAT mode, the current segment should always be the repeat segment
+    if (eslMode === ESL_MODES.REPEAT && repeatSegment !== null) {
+      currentSegment = repeatSegment;
+    } else {
+      // Normal segment detection based on time
+      currentSegment = segments.findIndex(segment =>
+        time >= segment.start && time < segment.end
+      );
+    }
 
     if (currentSegment !== -1 && currentSegment !== currentSegmentIndex) {
       onSegmentChange?.(currentSegment);
@@ -127,7 +135,7 @@ const ModernVideoPlayer = ({
 
     // Let parent handle ESL mode logic via onTimeUpdate callback
     onTimeUpdate?.(time);
-  }, [segments, currentSegmentIndex, onSegmentChange, onTimeUpdate, onPlayerStateChange]);
+  }, [segments, currentSegmentIndex, onSegmentChange, onTimeUpdate, onPlayerStateChange, eslMode, repeatSegment]);
 
   // Initialize Video.js player with proper StrictMode handling
   useEffect(() => {

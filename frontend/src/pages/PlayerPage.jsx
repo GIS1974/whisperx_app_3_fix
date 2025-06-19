@@ -20,9 +20,17 @@ export const PlayerPage = ({ onPlayerPageInfoChange }) => {
   const [error, setError] = useState(null);
   const [segments, setSegments] = useState([]);
 
-  // Initialize video player and ESL modes hooks
+  // Initialize video player hook first
   const videoPlayer = useVideoPlayer(segments);
+
+  // Initialize ESL modes hook with the player reference
   const eslModes = useESLModes(videoPlayer.playerRef, segments);
+
+  // Update video player with ESL mode information
+  useEffect(() => {
+    // Re-initialize the video player's segment detection with current ESL mode
+    videoPlayer.updateESLMode?.(eslModes.eslMode, eslModes.repeatSegment);
+  }, [eslModes.eslMode, eslModes.repeatSegment]);
 
   // Legacy state for compatibility (will be removed)
   const [eslVideoPlayerAPI, setEslVideoPlayerAPI] = useState(null);
@@ -161,6 +169,14 @@ export const PlayerPage = ({ onPlayerPageInfoChange }) => {
     // TODO: Save to backend via API
   };
 
+  // Handler for segment changes from video player
+  const handleSegmentChange = (segmentIndex) => {
+    // This will be called by ModernVideoPlayer when the current segment changes
+    // The useVideoPlayer hook will automatically update its currentSegmentIndex
+    // based on the time changes, so we don't need to do anything special here
+    console.log('Segment changed to:', segmentIndex);
+  };
+
   if (loading) {
     return <LoadingSpinner text="Loading media file..." />;
   }
@@ -236,7 +252,7 @@ export const PlayerPage = ({ onPlayerPageInfoChange }) => {
                 onTimeUpdate={(time) => {
                   eslModes.handleESLModeLogic(time, videoPlayer.currentSegmentIndex);
                 }}
-                onSegmentChange={videoPlayer.seekToSegment}
+                onSegmentChange={handleSegmentChange}
                 currentSegmentIndex={videoPlayer.currentSegmentIndex}
                 onModeChange={eslModes.changeESLMode}
                 onPlayerReady={(player) => {
