@@ -176,8 +176,11 @@ export const useESLModes = (playerRef, segments = []) => {
     setRepeatSegment(segmentIndex);
     setIsInShadowingPause(false);
 
-    // Jump to the start of the segment
+    // Jump to the start of the segment and start playing
     playerRef.current.currentTime(segment.start);
+    playerRef.current.play().catch(error => {
+      console.error('Error playing video in REPEAT mode:', error);
+    });
 
     console.log('REPEAT mode activated for segment', segmentIndex, segment);
   }, [segments]);
