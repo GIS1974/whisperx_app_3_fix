@@ -260,16 +260,6 @@ const ModernInteractiveTranscript = ({
                           ✏️
                         </button>
                       )}
-                      <button
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          handleSegmentDoubleClick(originalIndex);
-                        }}
-                        className="repeat-btn"
-                        title="Repeat this segment"
-                      >
-                        🔁
-                      </button>
                     </div>
                   </div>
                   
@@ -294,10 +284,6 @@ const ModernInteractiveTranscript = ({
         <div className="instruction-item">
           <span className="instruction-icon">👆</span>
           <span>Click to activate repeat mode</span>
-        </div>
-        <div className="instruction-item">
-          <span className="instruction-icon">🔁</span>
-          <span>Click repeat button for repeat mode</span>
         </div>
         {editMode && (
           <div className="instruction-item">

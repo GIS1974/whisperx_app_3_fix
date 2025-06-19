@@ -243,8 +243,7 @@
   opacity: 1;
 }
 
-.edit-btn,
-.repeat-btn {
+.edit-btn {
   width: 28px;
   height: 28px;
   border: none;
@@ -258,11 +257,6 @@
 
 .edit-btn:hover {
   background: #fbbf24;
-  transform: scale(1.1);
-}
-
-.repeat-btn:hover {
-  background: #10b981;
   transform: scale(1.1);
 }
 
