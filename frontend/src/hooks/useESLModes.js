@@ -57,9 +57,12 @@ export const useESLModes = (playerRef, segments = []) => {
 
         // Check if we've reached the end of the segment
         if (currentTime >= segment.end - 0.05) {
-          console.log('REPEAT mode interval: Pausing at segment end', { currentTime, segmentEnd: segment.end });
-          player.pause();
-          player.currentTime(segment.end);
+          // Only pause if not already paused to avoid repeated console messages
+          if (!player.paused()) {
+            console.log('REPEAT mode interval: Pausing at segment end', { currentTime, segmentEnd: segment.end });
+            player.pause();
+            player.currentTime(segment.end);
+          }
         }
         // Check if we've gone before the start (user seeked backward)
         else if (currentTime < segment.start) {
@@ -84,9 +87,12 @@ export const useESLModes = (playerRef, segments = []) => {
           if (segment) {
             // If we've gone past the end of the repeat segment, pause and set to end
             if (currentTime >= segment.end - 0.1) {
-              console.log('REPEAT mode: Pausing at segment end', { currentTime, segmentEnd: segment.end });
-              player.pause();
-              player.currentTime(segment.end);
+              // Only pause if not already paused to avoid repeated console messages
+              if (!player.paused()) {
+                console.log('REPEAT mode: Pausing at segment end', { currentTime, segmentEnd: segment.end });
+                player.pause();
+                player.currentTime(segment.end);
+              }
             }
             // If we've gone before the start of the repeat segment, jump back to start
             else if (currentTime < segment.start) {
@@ -103,21 +109,24 @@ export const useESLModes = (playerRef, segments = []) => {
 
           // Check if we've reached the end of a segment
           if (currentTime >= currentSegment.end - 0.1) {
-            player.pause();
-            setIsInShadowingPause(true);
+            // Only pause if not already paused to avoid repeated actions
+            if (!player.paused()) {
+              player.pause();
+              setIsInShadowingPause(true);
 
-            // Clear any existing timeout
-            if (shadowingTimeoutRef.current) {
-              clearTimeout(shadowingTimeoutRef.current);
-            }
-
-            // Resume after delay
-            shadowingTimeoutRef.current = setTimeout(() => {
-              if (player && eslMode === ESL_MODES.SHADOWING) {
-                player.play();
-                setIsInShadowingPause(false);
+              // Clear any existing timeout
+              if (shadowingTimeoutRef.current) {
+                clearTimeout(shadowingTimeoutRef.current);
               }
-            }, shadowingDelay * 1000);
+
+              // Resume after delay
+              shadowingTimeoutRef.current = setTimeout(() => {
+                if (player && eslMode === ESL_MODES.SHADOWING) {
+                  player.play();
+                  setIsInShadowingPause(false);
+                }
+              }, shadowingDelay * 1000);
+            }
           }
         }
         break;
