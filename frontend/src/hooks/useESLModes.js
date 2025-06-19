@@ -213,8 +213,12 @@ export const useESLModes = (playerRef, segments = []) => {
     if (!segment) return false;
 
     if (player.paused()) {
-      // If paused, always restart from beginning of segment
-      player.currentTime(segment.start);
+      const currentTime = player.currentTime();
+      // Only restart from beginning if we're at or past the end of the segment
+      if (currentTime >= segment.end - 0.1 || currentTime < segment.start) {
+        player.currentTime(segment.start);
+      }
+      // Otherwise continue from current position
       player.play();
     } else {
       // If playing, pause

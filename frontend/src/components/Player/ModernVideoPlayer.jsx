@@ -53,7 +53,12 @@ const ModernVideoPlayer = ({
         if (!isPaused) {
           playerRef.current.pause();
         } else {
-          playerRef.current.currentTime(segment.start);
+          const currentTime = playerRef.current.currentTime();
+          // Only restart from beginning if we're at or past the end of the segment
+          if (currentTime >= segment.end - 0.1 || currentTime < segment.start) {
+            playerRef.current.currentTime(segment.start);
+          }
+          // Otherwise continue from current position
           playerRef.current.play().catch(error => {
             console.error('Error playing video:', error);
           });
@@ -85,8 +90,12 @@ const ModernVideoPlayer = ({
             const player = playerRef.current;
 
             if (player.paused()) {
-              // If paused, always restart from beginning of segment
-              player.currentTime(segment.start);
+              const currentTime = player.currentTime();
+              // Only restart from beginning if we're at or past the end of the segment
+              if (currentTime >= segment.end - 0.1 || currentTime < segment.start) {
+                player.currentTime(segment.start);
+              }
+              // Otherwise continue from current position
               player.play();
             } else {
               // If playing, pause
