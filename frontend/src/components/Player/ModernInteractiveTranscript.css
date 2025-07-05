@@ -103,10 +103,7 @@
   box-shadow: 0 2px 8px rgba(59, 130, 246, 0.3);
 }
 
-.control-toggle.edit-mode.active {
-  background: #ef4444;
-  border-color: #ef4444;
-}
+
 
 .toggle-icon {
   font-size: 14px;
@@ -194,9 +191,7 @@
   box-shadow: 0 4px 12px rgba(59, 130, 246, 0.15);
 }
 
-.transcript-segment.edit-mode {
-  border-color: #fbbf24;
-}
+
 
 .transcript-segment.editing {
   background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%);
@@ -234,13 +229,8 @@
 .segment-actions {
   display: flex;
   gap: 4px;
-  opacity: 0;
-  transition: opacity 0.2s ease;
-}
-
-.transcript-segment:hover .segment-actions,
-.transcript-segment.edit-mode .segment-actions {
   opacity: 1;
+  transition: opacity 0.2s ease;
 }
 
 .edit-btn {

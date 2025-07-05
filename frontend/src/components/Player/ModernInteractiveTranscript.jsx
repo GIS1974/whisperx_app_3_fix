@@ -9,7 +9,6 @@ const ModernInteractiveTranscript = ({
   onRepeatModeActivate,
   className = ''
 }) => {
-  const [editMode, setEditMode] = useState(false);
   const [focusMode, setFocusMode] = useState(false);
   const [editingSegment, setEditingSegment] = useState(null);
   const [editedText, setEditedText] = useState('');
@@ -43,13 +42,15 @@ const ModernInteractiveTranscript = ({
   }, [currentSegmentIndex, focusMode]);
 
   const handleSegmentClick = (index) => {
-    if (!editMode) {
+    // Only handle segment click if not currently editing this segment
+    if (editingSegment !== index) {
       onSegmentClick?.(index);
     }
   };
 
   const handleSegmentDoubleClick = (index) => {
-    if (!editMode) {
+    // Only handle double click if not currently editing this segment
+    if (editingSegment !== index) {
       onRepeatModeActivate?.(index);
     }
   };
@@ -211,15 +212,6 @@ const ModernInteractiveTranscript = ({
             <span className="toggle-icon">🎯</span>
             Focus
           </button>
-          
-          <button
-            onClick={() => setEditMode(!editMode)}
-            className={`control-toggle ${editMode ? 'active edit-mode' : ''}`}
-            title="Edit Mode - Click segments to edit"
-          >
-            <span className="toggle-icon">✏️</span>
-            {editMode ? 'Exit Edit' : 'Edit'}
-          </button>
         </div>
       </div>
 
@@ -260,7 +252,7 @@ const ModernInteractiveTranscript = ({
             <div
               key={originalIndex}
               ref={isActive ? activeSegmentRef : null}
-              className={`transcript-segment ${isActive ? 'active' : ''} ${editMode ? 'edit-mode' : ''} ${isEditing ? 'editing' : ''}`}
+              className={`transcript-segment ${isActive ? 'active' : ''} ${isEditing ? 'editing' : ''}`}
               onClick={() => handleSegmentClick(originalIndex)}
               onDoubleClick={() => handleSegmentDoubleClick(originalIndex)}
             >
@@ -364,18 +356,16 @@ const ModernInteractiveTranscript = ({
                       {formatTime(segment.start)}
                     </div>
                     <div className="segment-actions">
-                      {editMode && (
-                        <button
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            startEditing(originalIndex);
-                          }}
-                          className="edit-btn"
-                          title="Edit this segment"
-                        >
-                          ✏️
-                        </button>
-                      )}
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          startEditing(originalIndex);
+                        }}
+                        className="edit-btn"
+                        title="Edit this segment"
+                      >
+                        ✏️
+                      </button>
                     </div>
                   </div>
                   
@@ -401,12 +391,10 @@ const ModernInteractiveTranscript = ({
           <span className="instruction-icon">👆</span>
           <span>Click to activate repeat mode</span>
         </div>
-        {editMode && (
-          <div className="instruction-item">
-            <span className="instruction-icon">✏️</span>
-            <span>Click edit button to modify</span>
-          </div>
-        )}
+        <div className="instruction-item">
+          <span className="instruction-icon">✏️</span>
+          <span>Click edit button to modify segments</span>
+        </div>
       </div>
     </div>
   );
