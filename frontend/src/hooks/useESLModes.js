@@ -39,8 +39,14 @@ export const useESLModes = (playerRef, segments = []) => {
       return;
     }
 
-    // If we're in repeat mode and have a segment, ensure interval is running
-    if (!repeatCheckIntervalRef.current && playerRef.current && segments[repeatSegment]) {
+    // If interval already exists (created by activateRepeatMode), don't recreate it
+    // This prevents unnecessary interval recreation and potential timing issues
+    if (repeatCheckIntervalRef.current) {
+      return;
+    }
+
+    // Create new interval for the current repeat segment only if one doesn't exist
+    if (playerRef.current && segments[repeatSegment]) {
       const segment = segments[repeatSegment];
 
       repeatCheckIntervalRef.current = setInterval(() => {
@@ -59,14 +65,14 @@ export const useESLModes = (playerRef, segments = []) => {
         if (currentTime >= segment.end - 0.05) {
           // Only pause if not already paused to avoid repeated console messages
           if (!player.paused()) {
-            console.log('REPEAT mode interval: Pausing at segment end', { currentTime, segmentEnd: segment.end });
+            console.log('REPEAT mode interval (useEffect): Pausing at segment end', { currentTime, segmentEnd: segment.end });
             player.pause();
             player.currentTime(segment.end);
           }
         }
         // Check if we've gone before the start (user seeked backward)
         else if (currentTime < segment.start) {
-          console.log('REPEAT mode interval: Jumping back to segment start', { currentTime, segmentStart: segment.start });
+          console.log('REPEAT mode interval (useEffect): Jumping back to segment start', { currentTime, segmentStart: segment.start });
           player.currentTime(segment.start);
         }
       }, 100); // Check every 100ms for more precise control
@@ -82,25 +88,8 @@ export const useESLModes = (playerRef, segments = []) => {
 
     switch (eslMode) {
       case ESL_MODES.REPEAT:
-        if (repeatSegment !== null) {
-          const segment = segments[repeatSegment];
-          if (segment) {
-            // If we've gone past the end of the repeat segment, pause and set to end
-            if (currentTime >= segment.end - 0.1) {
-              // Only pause if not already paused to avoid repeated console messages
-              if (!player.paused()) {
-                console.log('REPEAT mode: Pausing at segment end', { currentTime, segmentEnd: segment.end });
-                player.pause();
-                player.currentTime(segment.end);
-              }
-            }
-            // If we've gone before the start of the repeat segment, jump back to start
-            else if (currentTime < segment.start) {
-              console.log('REPEAT mode: Jumping back to segment start', { currentTime, segmentStart: segment.start });
-              player.currentTime(segment.start);
-            }
-          }
-        }
+        // REPEAT mode logic is now handled entirely by the interval-based approach
+        // to avoid conflicts and ensure consistent behavior when the same segment is clicked multiple times
         break;
 
       case ESL_MODES.SHADOWING:
@@ -181,15 +170,49 @@ export const useESLModes = (playerRef, segments = []) => {
       repeatCheckIntervalRef.current = null;
     }
 
+    // Always set repeat mode and segment, even if it's the same segment
     setEslMode(ESL_MODES.REPEAT);
     setRepeatSegment(segmentIndex);
     setIsInShadowingPause(false);
 
-    // Jump to the start of the segment and start playing
+    // Always jump to the start of the segment and start playing
+    // This ensures that clicking the same segment multiple times restarts it
     playerRef.current.currentTime(segment.start);
     playerRef.current.play().catch(error => {
       console.error('Error playing video in REPEAT mode:', error);
     });
+
+    // Immediately create the interval for this segment to avoid timing issues
+    // This ensures the interval is active right away, even before React state updates
+    if (playerRef.current && segment) {
+      repeatCheckIntervalRef.current = setInterval(() => {
+        if (!playerRef.current) {
+          if (repeatCheckIntervalRef.current) {
+            clearInterval(repeatCheckIntervalRef.current);
+            repeatCheckIntervalRef.current = null;
+          }
+          return;
+        }
+
+        const player = playerRef.current;
+        const currentTime = player.currentTime();
+
+        // Check if we've reached the end of the segment
+        if (currentTime >= segment.end - 0.05) {
+          // Only pause if not already paused to avoid repeated console messages
+          if (!player.paused()) {
+            console.log('REPEAT mode interval (immediate): Pausing at segment end', { currentTime, segmentEnd: segment.end });
+            player.pause();
+            player.currentTime(segment.end);
+          }
+        }
+        // Check if we've gone before the start (user seeked backward)
+        else if (currentTime < segment.start) {
+          console.log('REPEAT mode interval (immediate): Jumping back to segment start', { currentTime, segmentStart: segment.start });
+          player.currentTime(segment.start);
+        }
+      }, 100); // Check every 100ms for more precise control
+    }
 
     console.log('REPEAT mode activated for segment', segmentIndex, segment);
   }, [segments]);
