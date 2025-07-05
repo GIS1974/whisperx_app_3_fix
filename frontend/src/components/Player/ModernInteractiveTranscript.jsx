@@ -146,6 +146,24 @@ const ModernInteractiveTranscript = ({
     return minutes * 60 + seconds + milliseconds / 1000;
   };
 
+  // Adjust time by increment (in seconds)
+  const adjustTime = (timeString, increment) => {
+    const currentSeconds = timeStringToSeconds(timeString);
+    const newSeconds = Math.max(0, currentSeconds + increment); // Don't allow negative time
+    return secondsToTimeString(newSeconds);
+  };
+
+  // Handle time increment/decrement
+  const handleTimeAdjustment = (field, increment) => {
+    if (field === 'start') {
+      const newStartTime = adjustTime(editedStart, increment);
+      setEditedStart(newStartTime);
+    } else if (field === 'end') {
+      const newEndTime = adjustTime(editedEnd, increment);
+      setEditedEnd(newEndTime);
+    }
+  };
+
   const highlightSearchTerm = (text) => {
     if (!searchTerm) return text;
     
@@ -256,25 +274,65 @@ const ModernInteractiveTranscript = ({
                   <div className="time-inputs">
                     <div className="time-input-group">
                       <label>Start Time (mm:ss.xxx)</label>
-                      <input
-                        type="text"
-                        value={editedStart}
-                        onChange={(e) => setEditedStart(e.target.value)}
-                        className="time-input"
-                        placeholder="00:00.000"
-                        title="Format: mm:ss.xxx (e.g., 01:30.500)"
-                      />
+                      <div className="time-input-with-controls">
+                        <input
+                          type="text"
+                          value={editedStart}
+                          onChange={(e) => setEditedStart(e.target.value)}
+                          className="time-input"
+                          placeholder="00:00.000"
+                          title="Format: mm:ss.xxx (e.g., 01:30.500)"
+                        />
+                        <div className="time-controls">
+                          <button
+                            type="button"
+                            className="time-btn time-btn-up"
+                            onClick={() => handleTimeAdjustment('start', 0.1)}
+                            title="Increase by 0.1 second"
+                          >
+                            ▲
+                          </button>
+                          <button
+                            type="button"
+                            className="time-btn time-btn-down"
+                            onClick={() => handleTimeAdjustment('start', -0.1)}
+                            title="Decrease by 0.1 second"
+                          >
+                            ▼
+                          </button>
+                        </div>
+                      </div>
                     </div>
                     <div className="time-input-group">
                       <label>End Time (mm:ss.xxx)</label>
-                      <input
-                        type="text"
-                        value={editedEnd}
-                        onChange={(e) => setEditedEnd(e.target.value)}
-                        className="time-input"
-                        placeholder="00:00.000"
-                        title="Format: mm:ss.xxx (e.g., 01:30.500)"
-                      />
+                      <div className="time-input-with-controls">
+                        <input
+                          type="text"
+                          value={editedEnd}
+                          onChange={(e) => setEditedEnd(e.target.value)}
+                          className="time-input"
+                          placeholder="00:00.000"
+                          title="Format: mm:ss.xxx (e.g., 01:30.500)"
+                        />
+                        <div className="time-controls">
+                          <button
+                            type="button"
+                            className="time-btn time-btn-up"
+                            onClick={() => handleTimeAdjustment('end', 0.1)}
+                            title="Increase by 0.1 second"
+                          >
+                            ▲
+                          </button>
+                          <button
+                            type="button"
+                            className="time-btn time-btn-down"
+                            onClick={() => handleTimeAdjustment('end', -0.1)}
+                            title="Decrease by 0.1 second"
+                          >
+                            ▼
+                          </button>
+                        </div>
+                      </div>
                     </div>
                   </div>
                   
