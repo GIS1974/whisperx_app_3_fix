@@ -58,19 +58,45 @@ const ModernInteractiveTranscript = ({
     const segment = segments[index];
     setEditingSegment(index);
     setEditedText(segment.text);
-    setEditedStart(segment.start);
-    setEditedEnd(segment.end);
+    setEditedStart(secondsToTimeString(segment.start));
+    setEditedEnd(secondsToTimeString(segment.end));
   };
 
   const saveEdits = () => {
     if (editingSegment !== null) {
+      const startSeconds = timeStringToSeconds(editedStart);
+      const endSeconds = timeStringToSeconds(editedEnd);
+
+      // Validate time format and values
+      if (startSeconds === 0 && editedStart !== '00:00.000' && editedStart !== '00:00') {
+        alert('Invalid start time format. Please use mm:ss.xxx format (e.g., 01:30.500)');
+        return;
+      }
+
+      if (endSeconds === 0 && editedEnd !== '00:00.000' && editedEnd !== '00:00') {
+        alert('Invalid end time format. Please use mm:ss.xxx format (e.g., 01:30.500)');
+        return;
+      }
+
+      // Validate that end time is after start time
+      if (endSeconds <= startSeconds) {
+        alert(`End time (${editedEnd}) must be after start time (${editedStart})`);
+        return;
+      }
+
+      // Validate that text is not empty
+      if (!editedText.trim()) {
+        alert('Segment text cannot be empty');
+        return;
+      }
+
       const updatedSegment = {
         ...segments[editingSegment],
-        text: editedText,
-        start: parseFloat(editedStart),
-        end: parseFloat(editedEnd)
+        text: editedText.trim(),
+        start: startSeconds,
+        end: endSeconds
       };
-      
+
       onSegmentUpdate?.(editingSegment, updatedSegment);
       setEditingSegment(null);
     }
@@ -82,12 +108,42 @@ const ModernInteractiveTranscript = ({
 
   const formatTime = (seconds) => {
     if (!seconds && seconds !== 0) return '00:00.000';
-    
+
     const mins = Math.floor(seconds / 60);
     const secs = Math.floor(seconds % 60);
     const ms = Math.floor((seconds % 1) * 1000);
-    
+
     return `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}.${ms.toString().padStart(3, '0')}`;
+  };
+
+  // Convert seconds to mm:ss.xxx format for editing
+  const secondsToTimeString = (seconds) => {
+    if (!seconds && seconds !== 0) return '00:00.000';
+
+    // Round to 3 decimal places to avoid floating point precision issues
+    const roundedSeconds = Math.round(seconds * 1000) / 1000;
+
+    const mins = Math.floor(roundedSeconds / 60);
+    const secs = Math.floor(roundedSeconds % 60);
+    const ms = Math.round((roundedSeconds % 1) * 1000);
+
+    return `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}.${ms.toString().padStart(3, '0')}`;
+  };
+
+  // Convert mm:ss.xxx format back to seconds
+  const timeStringToSeconds = (timeString) => {
+    if (!timeString) return 0;
+
+    // Handle both mm:ss.xxx and mm:ss formats
+    const parts = timeString.split(':');
+    if (parts.length !== 2) return 0;
+
+    const minutes = parseInt(parts[0]) || 0;
+    const secondsPart = parts[1].split('.');
+    const seconds = parseInt(secondsPart[0]) || 0;
+    const milliseconds = secondsPart[1] ? parseInt(secondsPart[1].padEnd(3, '0').substring(0, 3)) || 0 : 0;
+
+    return minutes * 60 + seconds + milliseconds / 1000;
   };
 
   const highlightSearchTerm = (text) => {
@@ -199,23 +255,25 @@ const ModernInteractiveTranscript = ({
                   
                   <div className="time-inputs">
                     <div className="time-input-group">
-                      <label>Start Time</label>
+                      <label>Start Time (mm:ss.xxx)</label>
                       <input
-                        type="number"
-                        step="0.1"
+                        type="text"
                         value={editedStart}
                         onChange={(e) => setEditedStart(e.target.value)}
                         className="time-input"
+                        placeholder="00:00.000"
+                        title="Format: mm:ss.xxx (e.g., 01:30.500)"
                       />
                     </div>
                     <div className="time-input-group">
-                      <label>End Time</label>
+                      <label>End Time (mm:ss.xxx)</label>
                       <input
-                        type="number"
-                        step="0.1"
+                        type="text"
                         value={editedEnd}
                         onChange={(e) => setEditedEnd(e.target.value)}
                         className="time-input"
+                        placeholder="00:00.000"
+                        title="Format: mm:ss.xxx (e.g., 01:30.500)"
                       />
                     </div>
                   </div>
