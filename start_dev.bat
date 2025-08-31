@@ -9,12 +9,12 @@ echo Waiting for Django to start...
 timeout /t 3 /nobreak > nul
 
 echo Starting React frontend server...
-start "React Frontend" cmd /k "cd /d %~dp0frontend && npm run dev"
+start "React Frontend" cmd /k "cd /d %~dp0frontend && npm run dev -- --host"
 
 echo.
 echo Development servers are starting...
 echo Backend: http://localhost:8000
-echo Frontend: http://localhost:3000
+echo Frontend: http://localhost:5173
 echo.
 echo Press any key to exit...
 pause > nul
