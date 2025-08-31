@@ -47,16 +47,40 @@ export const DashboardPage = () => {
     }
   };
 
-  const handleDownload = async (fileId, fileType) => {
+  // Format current date/time as YYYY-MM-DDTHHMMSS (local time)
+  const formatTimestamp = (date = new Date()) => {
+    const pad = (n) => n.toString().padStart(2, '0');
+    const yyyy = date.getFullYear();
+    const mm = pad(date.getMonth() + 1);
+    const dd = pad(date.getDate());
+    const HH = pad(date.getHours());
+    const MM = pad(date.getMinutes());
+    const SS = pad(date.getSeconds());
+    return `${yyyy}-${mm}-${dd}T${HH}${MM}${SS}`;
+  };
+
+  // Remove the extension from a filename
+  const getBaseName = (filename = '') => {
+    const lastDot = filename.lastIndexOf('.');
+    return lastDot > 0 ? filename.substring(0, lastDot) : filename;
+  };
+
+  const handleDownload = async (file, fileType) => {
     try {
-      const response = await transcriptionAPI.downloadSubtitleFile(fileId, fileType);
+      const response = await transcriptionAPI.downloadSubtitleFile(file.id, fileType);
 
       // Create blob and download
       const blob = new Blob([response], { type: 'text/plain' });
       const url = window.URL.createObjectURL(blob);
       const link = document.createElement('a');
       link.href = url;
-      link.download = `transcript.${fileType.toLowerCase()}`;
+
+      // Build filename: "<media base name> YYYY-MM-DDTHHMMSS.<ext>"
+      const baseName = getBaseName(file.filename_original);
+      const timestamp = formatTimestamp(new Date());
+      const safeBase = baseName.replace(/[\/:*?"<>|]/g, ' ').replace(/\s+/g, ' ').trim();
+      link.download = `${safeBase} ${timestamp}.${fileType.toLowerCase()}`;
+
       document.body.appendChild(link);
       link.click();
       document.body.removeChild(link);
@@ -309,21 +333,21 @@ export const DashboardPage = () => {
                       {canOpen(file) ? (
                         <div className="flex space-x-2">
                           <button
-                            onClick={() => handleDownload(file.id, 'vtt')}
+                            onClick={() => handleDownload(file, 'vtt')}
                             className="text-xs bg-blue-100 text-blue-700 px-2 py-1 rounded hover:bg-blue-200 transition-colors"
                             title="Download VTT"
                           >
                             VTT
                           </button>
                           <button
-                            onClick={() => handleDownload(file.id, 'srt')}
+                            onClick={() => handleDownload(file, 'srt')}
                             className="text-xs bg-green-100 text-green-700 px-2 py-1 rounded hover:bg-green-200 transition-colors"
                             title="Download SRT"
                           >
                             SRT
                           </button>
                           <button
-                            onClick={() => handleDownload(file.id, 'txt')}
+                            onClick={() => handleDownload(file, 'txt')}
                             className="text-xs bg-purple-100 text-purple-700 px-2 py-1 rounded hover:bg-purple-200 transition-colors"
                             title="Download TXT"
                           >
